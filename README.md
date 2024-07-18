@@ -1,2 +1,2 @@
 # Mahjong
-Mahjong 2D simulator based on the Classical chinese game with local rules
+Mahjong 2D simulator based on the Classical chinese game
