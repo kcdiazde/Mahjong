@@ -1,7 +1,7 @@
 #ifndef MAHJONG_CC
 #define MAHJONG_CC
 
-#include "mahjong.h"
+#include "tiles.h"
 
 // Constructor
 MahjongSet::MahjongSet() {

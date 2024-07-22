@@ -8,7 +8,7 @@ CXXFLAGS = -Wall -g
 TARGET = Mahjong
 
 # Source files
-SRCS = mahjong.cc
+SRCS = tiles.cc
 
 # Object files
 OBJS = $(SRCS:.cc=.o)
@@ -21,7 +21,7 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
 # Rule to compile the source files into object files
-%.o: %.cc mahjong.h
+%.o: %.cc tiles.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Rule to clean up the build files
