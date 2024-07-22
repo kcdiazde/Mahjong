@@ -75,8 +75,8 @@ void MahjongSet::create_dot_tiles() {
 
 void MahjongSet::print() {
         printf("******Mahjong set******\n");
-        for (int num_tile = 0; num_tile < TILES_IN_SET; num_tile++) {
-            _mahjong_set.at(num_tile)->print();
+        for (auto tile : _mahjong_set) {
+            tile->print();
         }
         printf("Number of tiles: %i\n\n", int(_mahjong_set.size()));
 }
@@ -89,15 +89,10 @@ void MahjongSet::shuffle() {
     std::shuffle(_mahjong_set.begin(), _mahjong_set.end(), rng);
 }
 
-int main() {
-    printf("Welcome to mahjong\n\n");
-
-    MahjongSet mahjong_set = MahjongSet();
-    // mahjong_set.print();
-    mahjong_set.shuffle();
-    mahjong_set.print();
-
-    return 0;
+MahjongTile* MahjongSet::take_tile() {
+    MahjongTile* tile_to_remove = _mahjong_set[0];
+    _mahjong_set.erase(_mahjong_set.begin(), _mahjong_set.begin()+1);
+    return tile_to_remove;
 }
 
 #endif

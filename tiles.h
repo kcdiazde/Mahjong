@@ -2,16 +2,14 @@
 #define TILES_H
 
 #include <stdio.h>
-#include<string>
-#include<list>
-#include<cassert>
-#include<vector>
+#include <string>
+#include <list>
+#include <cassert>
+#include <vector>
 #include <algorithm>
 #include <random>
 #include <chrono>
 #include "mahjong_common.h"
-
-#define TILES_IN_SET 144
 
 class MahjongTile {
 protected:
@@ -28,7 +26,8 @@ public:
         printf("%s %s\n", _name.c_str(), _tile_group.name.c_str());
     }
 
-    TileGroup get_group() {return _tile_group;}
+    const TileGroup get_group() {return _tile_group;}
+    bool is_flower() {return _tile_group.name == FLOWER.name;}
     std::string get_name() {return _name;}
 };
 
@@ -53,6 +52,7 @@ public:
     explicit MahjongSet();
     void print();
     void shuffle();
+    MahjongTile* take_tile();
 
 protected:
     std::vector<MahjongTile*> _mahjong_set ;
@@ -65,7 +65,6 @@ protected:
     void create_symbol_tiles();
     void create_bamboo_tiles();
     void create_dot_tiles();
-
 };
 
 #endif

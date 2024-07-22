@@ -1,6 +1,10 @@
 #ifndef MAHJONG_COMMON_H
 #define MAHJONG_COMMON_H
 
+#include <string>
+
+#define TILES_IN_SET 144
+
 struct TileGroup {
     std::string name;
     bool has_a_number;
