@@ -24,7 +24,7 @@ void Player::print_hand() {
 }
 
 void Player::sort_hand() {
-    
+    std::sort(_hand.begin(), _hand.end(), MahjongTile::tilesCustomComparator);
 }
 
 #endif

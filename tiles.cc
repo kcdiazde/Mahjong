@@ -3,6 +3,26 @@
 
 #include "tiles.h"
 
+// TODO: Add destructors
+
+bool MahjongTile::tilesCustomComparator(const MahjongTile * a, const MahjongTile * b) {
+    TileGroup a_group = a->get_group();
+    TileGroup b_group = b->get_group();
+
+    bool is_same_category = (a_group.name == b_group.name);
+
+     // Sort by value if categories are the same
+    if (is_same_category && a_group.has_a_number) {
+            const MahjongTileNumerical * a_num = dynamic_cast<const MahjongTileNumerical*>(a);
+            const MahjongTileNumerical * b_num = dynamic_cast<const MahjongTileNumerical*>(b);
+            return a_num->get_value() < b_num->get_value();
+    } else {
+        // Low priority means better
+        return a_group.priority < b_group.priority;
+    }
+    
+}
+
 // Constructor
 MahjongSet::MahjongSet() {
     create_dragon_tiles();

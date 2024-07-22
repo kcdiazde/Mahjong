@@ -21,14 +21,17 @@ public:
     explicit MahjongTile() {}
     explicit MahjongTile(TileGroup tile_group, std::string name):
                          _tile_group(tile_group), _name(name) {}
+    // Virtual destructor to make class polymorphic
+    virtual ~MahjongTile() = default;
 
     void print() {
         printf("%s %s\n", _name.c_str(), _tile_group.name.c_str());
     }
 
-    const TileGroup get_group() {return _tile_group;}
+    const TileGroup get_group() const {return _tile_group;}
     bool is_flower() {return _tile_group.name == FLOWER.name;}
     std::string get_name() {return _name;}
+    static bool tilesCustomComparator(const MahjongTile * a, const MahjongTile * b);
 };
 
 class MahjongTileNumerical : public MahjongTile{
@@ -44,7 +47,7 @@ public:
         _name = std::to_string(value);
     }
     
-    uint8_t get_value() {return _value;}
+    uint8_t get_value() const {return _value;}
 };
 
 class MahjongSet {

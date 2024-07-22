@@ -70,6 +70,10 @@ void Mahjong::deal_tiles() {
     while(first_player->get_num_tiles_in_hand() != (TILES_PER_PLAYER+1)) {
         deal_tile_to_player(first_player);
     }
+
+    for (auto player : _players) {
+        player->sort_hand();
+    }
 }
 
 void Mahjong::print_players_hands() {
