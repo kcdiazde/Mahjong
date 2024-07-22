@@ -11,10 +11,11 @@ void Mahjong::create_match(std::list<std::string> list_of_player_names) {
     }
 
     create_players(list_of_player_names);
+
     create_set();
+    deal_tiles();
 
 }
-
 
 void Mahjong::create_players(std::list<std::string> list_of_player_names) {
         // Empty if already populated
@@ -28,8 +29,8 @@ void Mahjong::create_players(std::list<std::string> list_of_player_names) {
     Player * new_player = nullptr;
     for (auto player_str : list_of_player_names) {
         new_player = new Player(player_str);
+        _players.push_back(new_player);
     }
-    _players.push_back(new_player);
 }
 
 void Mahjong::create_set() {
@@ -37,26 +38,52 @@ void Mahjong::create_set() {
     _set->shuffle();
 }
 
+void Mahjong::deal_tile_to_player(Player* player) {
+    player->deal_tile(_set->take_tile());
+}
+
+void Mahjong::deal_tiles() {
+    // Error checking
+    for (auto player : _players) {
+        if (player->get_num_total_tiles()) {
+            throw std::runtime_error("Players should start with no tiles");
+        }
+    }
+
+    // Start dealing the expected number of tiles to each player
+    for (uint8_t num_tile = 0; num_tile < TILES_PER_PLAYER; num_tile++) {
+        for (auto player : _players) {
+            // printf("Dealing to %s", player->get_name().c_str());
+            deal_tile_to_player(player);
+        }
+    }
+
+    // Replenish flowers since they don't count as tile in hand
+    for (auto player : _players) {
+        while(player->get_num_tiles_in_hand() != TILES_PER_PLAYER) {
+            deal_tile_to_player(player);
+        }
+    }
+
+    // First player starts with 1 extra tile 
+    Player* first_player = _players[0];
+    while(first_player->get_num_tiles_in_hand() != (TILES_PER_PLAYER+1)) {
+        deal_tile_to_player(first_player);
+    }
+}
+
+void Mahjong::print_players_hands() {
+    for (auto player : _players) {
+        player->print_hand();
+    }
+}
+
 int main() {
     printf("Welcome to mahjong\n\n");
 
-    MahjongSet mahjong_set = MahjongSet();
-    // mahjong_set.print();
-    mahjong_set.shuffle();
-    // mahjong_set.print();
-
-    /*
-    Player player_1 = Player("Yo");
-    Player player_2 = Player("P2");
-    Player player_3 = Player("P3");
-    Player player_4 = Player("P4");
-    for (int i = 0; i < 13; i++) {
-        player_1.deal_tile(mahjong_set.take_tile());
-    }
-    player_1.print_hand();
-    */
-
-    // mahjong_set.print();
+    Mahjong my_mahjong = Mahjong();
+    my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
+    my_mahjong.print_players_hands();
 
     return 0;
 }

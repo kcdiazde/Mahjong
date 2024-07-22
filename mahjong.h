@@ -14,6 +14,7 @@ class Mahjong {
 private:
     MahjongSet * _set;
     std::vector<Player*> _players;
+    uint8_t _current_player_id;
 
 public:
     explicit Mahjong()  {};
@@ -21,6 +22,9 @@ public:
     void create_set();
     void create_players(std::list<std::string> list_of_player_names);
     void rematch();
+    void deal_tiles();
+    void deal_tile_to_player(Player* player);
+    void print_players_hands();
 
 
 };

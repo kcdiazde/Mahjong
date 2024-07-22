@@ -4,6 +4,7 @@
 #include <string>
 
 #define TILES_IN_SET 144
+#define TILES_PER_PLAYER 13
 
 struct TileGroup {
     std::string name;

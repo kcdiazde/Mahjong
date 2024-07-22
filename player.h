@@ -6,12 +6,14 @@
 #include "tiles.h"
 #include <string>
 
+typedef std::vector<MahjongTile*> MahjongHand;
+
 class Player {
 
 protected:
     std::string _name;
-    std::vector<MahjongTile*> _hand;
-    std::vector<MahjongTile*> _flowers;
+    MahjongHand _hand;
+    MahjongHand _flowers;
     uint16_t _points;
 
 public:
@@ -23,9 +25,13 @@ public:
 
     void print_hand();
     void deal_tile(MahjongTile*);
-    uint8_t get_num_tiles() {return _hand.size();}
-
+    uint8_t get_num_total_tiles() {return _hand.size() + _flowers.size();}
+    uint8_t get_num_tiles_in_hand() {return _hand.size();}
+    std::string get_name() {return _name;}
+    void sort_hand();
     bool play();
+
+    
 };
 
 

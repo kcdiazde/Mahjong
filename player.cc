@@ -23,4 +23,8 @@ void Player::print_hand() {
     printf("\n");
 }
 
+void Player::sort_hand() {
+    
+}
+
 #endif
