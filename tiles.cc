@@ -1,5 +1,5 @@
-#ifndef MAHJONG_CC
-#define MAHJONG_CC
+#ifndef TILES_CC
+#define TILES_CC
 
 #include "tiles.h"
 
