@@ -1,44 +1,43 @@
 #ifndef TILES_H
 #define TILES_H
 
+#include "mahjong_common.h"
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <list>
+#include <random>
 #include <stdio.h>
 #include <string>
-#include <list>
-#include <cassert>
 #include <vector>
-#include <algorithm>
-#include <random>
-#include <chrono>
-#include "mahjong_common.h"
 
 class MahjongTile {
-protected:
+  protected:
     TileGroup _tile_group;
     std::string _name;
 
-public:
+  public:
     // TODO: Clean constructors
     explicit MahjongTile() {}
-    explicit MahjongTile(TileGroup tile_group, std::string name):
-                         _tile_group(tile_group), _name(name) {}
+    explicit MahjongTile(TileGroup tile_group, std::string name)
+        : _tile_group(tile_group), _name(name) {}
     // Virtual destructor to make class polymorphic
     virtual ~MahjongTile() = default;
 
-    void print() {
-        printf("%s %s\n", _name.c_str(), _tile_group.name.c_str());
-    }
+    void print() { printf("%s %s\n", _name.c_str(), _tile_group.name.c_str()); }
 
-    const TileGroup get_group() const {return _tile_group;}
-    bool is_flower() {return _tile_group.name == FLOWER.name;}
-    std::string get_name() {return _name;}
-    static bool tilesCustomComparator(const MahjongTile * a, const MahjongTile * b);
+    const TileGroup get_group() const { return _tile_group; }
+    bool is_flower() { return _tile_group.name == FLOWER.name; }
+    std::string get_name() { return _name; }
+    static bool tilesCustomComparator(const MahjongTile *a,
+                                      const MahjongTile *b);
 };
 
-class MahjongTileNumerical : public MahjongTile{
-protected:
+class MahjongTileNumerical : public MahjongTile {
+  protected:
     uint8_t _value;
 
-public:
+  public:
     // TODO: Clean constructors
     explicit MahjongTileNumerical() {}
     explicit MahjongTileNumerical(TileGroup tile_group, int value) {
@@ -46,20 +45,20 @@ public:
         _value = value;
         _name = std::to_string(value);
     }
-    
-    uint8_t get_value() const {return _value;}
+
+    uint8_t get_value() const { return _value; }
 };
 
 class MahjongSet {
-public:
+  public:
     explicit MahjongSet();
     void print();
     void shuffle();
-    MahjongTile* take_tile();
+    MahjongTile *take_tile();
 
-protected:
-    std::vector<MahjongTile*> _mahjong_set ;
-    
+  protected:
+    std::vector<MahjongTile *> _mahjong_set;
+
     void create_tiles(TileGroup group, std::list<std::string> names);
     void create_numbered_tiles(TileGroup group, int max_num_tile);
     void create_dragon_tiles();

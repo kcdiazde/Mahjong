@@ -1,11 +1,9 @@
-
 #ifndef MAHJONG_CC
 #define MAHJONG_CC
 
 #include "mahjong.h"
 
 void Mahjong::create_match(std::list<std::string> list_of_player_names) {
-
     if (!list_of_player_names.size()) {
         throw std::runtime_error("Game should have at least 1 player");
     }
@@ -14,19 +12,18 @@ void Mahjong::create_match(std::list<std::string> list_of_player_names) {
 
     create_set();
     deal_tiles();
-
 }
 
 void Mahjong::create_players(std::list<std::string> list_of_player_names) {
-        // Empty if already populated
+    // Empty if already populated
     while (_players.size()) {
-            Player * temp_player = _players.front();
-            _players.erase(_players.begin());
-            delete temp_player;
+        Player *temp_player = _players.front();
+        _players.erase(_players.begin());
+        delete temp_player;
     }
 
     // Create new players
-    Player * new_player = nullptr;
+    Player *new_player = nullptr;
     for (auto player_str : list_of_player_names) {
         new_player = new Player(player_str);
         _players.push_back(new_player);
@@ -38,7 +35,7 @@ void Mahjong::create_set() {
     _set->shuffle();
 }
 
-void Mahjong::deal_tile_to_player(Player* player) {
+void Mahjong::deal_tile_to_player(Player *player) {
     player->deal_tile(_set->take_tile());
 }
 
@@ -60,14 +57,14 @@ void Mahjong::deal_tiles() {
 
     // Replenish flowers since they don't count as tile in hand
     for (auto player : _players) {
-        while(player->get_num_tiles_in_hand() != TILES_PER_PLAYER) {
+        while (player->get_num_tiles_in_hand() != TILES_PER_PLAYER) {
             deal_tile_to_player(player);
         }
     }
 
-    // First player starts with 1 extra tile 
-    Player* first_player = _players[0];
-    while(first_player->get_num_tiles_in_hand() != (TILES_PER_PLAYER+1)) {
+    // First player starts with 1 extra tile
+    Player *first_player = _players[0];
+    while (first_player->get_num_tiles_in_hand() != (TILES_PER_PLAYER + 1)) {
         deal_tile_to_player(first_player);
     }
 
