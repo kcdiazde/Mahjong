@@ -19,6 +19,7 @@ class Player {
   public:
     explicit Player(){};
     explicit Player(std::string name) : _name(name), _points(0){};
+    virtual ~Player() = default;
 
     void print_hand();
     void deal_tile(MahjongTile *);
@@ -26,21 +27,34 @@ class Player {
     uint8_t get_num_tiles_in_hand() { return _hand.size(); }
     std::string get_name() { return _name; }
     void sort_hand();
-    bool play();
+    virtual std::vector<MahjongTile*> get_tiles_to_pass() = 0;
 };
 
-class User : Player {
+class User : public Player {
   protected:
 
   public:
+    explicit User() {};
+    explicit User(std::string name) : Player(name) {};
+    ~User() = default;
+
+    std::vector<MahjongTile*> get_tiles_to_pass() {
+      return _hand;
+    }
 
 };
 
-class Bot : Player {
+class Bot : public Player {
   protected:
 
   public:
     explicit Bot() {};
+    explicit Bot(std::string name) : Player(name) {};
+    ~Bot() = default;
+    
+    std::vector<MahjongTile*> get_tiles_to_pass() {
+      return _hand;
+    }
 };
 
 #endif

@@ -5,6 +5,8 @@
 
 #define TILES_IN_SET 144
 #define TILES_PER_PLAYER 13
+#define MIN_NUM_PLAYERS 2
+#define MAX_NUM_PLAYERS 4
 
 struct TileGroup {
     std::string name;

@@ -4,18 +4,18 @@
 #include "mahjong.h"
 
 void Mahjong::create_match(std::list<std::string> list_of_player_names) {
-    if (!list_of_player_names.size()) {
+    if (list_of_player_names.size() < MIN_NUM_PLAYERS ||
+        list_of_player_names.size() > MAX_NUM_PLAYERS) {
         throw std::runtime_error("Game should have at least 1 player");
     }
 
     create_players(list_of_player_names);
-
     create_set();
     deal_tiles();
 }
 
 void Mahjong::create_players(std::list<std::string> list_of_player_names) {
-    // Empty if already populated
+    // Empty-out if already populated
     while (_players.size()) {
         Player *temp_player = _players.front();
         _players.erase(_players.begin());
@@ -24,8 +24,13 @@ void Mahjong::create_players(std::list<std::string> list_of_player_names) {
 
     // Create new players
     Player *new_player = nullptr;
+    bool user_created = false;
     for (auto player_str : list_of_player_names) {
-        new_player = new Player(player_str);
+        if (user_created) {
+            new_player = new Bot(player_str);            
+        } else {
+            new_player = new User(player_str);
+        }
         _players.push_back(new_player);
     }
 }
