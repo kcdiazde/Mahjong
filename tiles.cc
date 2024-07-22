@@ -3,27 +3,9 @@
 
 #include "tiles.h"
 
+uint8_t MahjongTile::_unique_id = 0;
+
 // TODO: Add destructors
-
-bool MahjongTile::tilesCustomComparator(const MahjongTile *a,
-                                        const MahjongTile *b) {
-    TileGroup a_group = a->get_group();
-    TileGroup b_group = b->get_group();
-
-    bool is_same_category = (a_group.name == b_group.name);
-
-    // Sort by value if categories are the same
-    if (is_same_category && a_group.has_a_number) {
-        const MahjongTileNumerical *a_num =
-            dynamic_cast<const MahjongTileNumerical *>(a);
-        const MahjongTileNumerical *b_num =
-            dynamic_cast<const MahjongTileNumerical *>(b);
-        return a_num->get_value() < b_num->get_value();
-    } else {
-        // Low priority means better
-        return a_group.priority < b_group.priority;
-    }
-}
 
 // Constructor
 MahjongSet::MahjongSet() {
@@ -109,6 +91,42 @@ MahjongTile *MahjongSet::take_tile() {
     MahjongTile *tile_to_remove = _mahjong_set[0];
     _mahjong_set.erase(_mahjong_set.begin());
     return tile_to_remove;
+}
+
+bool MahjongTile::tilesCustomComparator(const MahjongTile *a,
+                                        const MahjongTile *b) {
+    return a->get_id() < b->get_id();
+    // Old sort method
+    /*
+    TileGroup a_group = a->get_group();
+    TileGroup b_group = b->get_group();
+
+    bool is_same_category = (a_group.name == b_group.name);
+
+    if (is_same_category) {
+        // If it has a numeric value sort by value
+        if (a_group.has_a_number) {
+            const MahjongTileNumerical *a_num =
+                dynamic_cast<const MahjongTileNumerical *>(a);
+            const MahjongTileNumerical *b_num =
+                dynamic_cast<const MahjongTileNumerical *>(b);
+                return a_num->get_value() < b_num->get_value();
+        // Else sort by alphabetical order based on first char
+        } else {
+            std::string a_char = a->get_name();
+            std::string b_char = a->get_name();
+            return a_char[0] < b_char[0];
+        }
+    } else {
+        // Low priority means better
+        return a_group.priority < b_group.priority;
+    }
+    */
+}
+
+uint8_t MahjongTile::get_unique_id() {
+    uint8_t current_id = _unique_id++;
+    return current_id;
 }
 
 #endif

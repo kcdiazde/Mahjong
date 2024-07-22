@@ -27,4 +27,26 @@ void Player::sort_hand() {
     std::sort(_hand.begin(), _hand.end(), MahjongTile::tilesCustomComparator);
 }
 
+MahjongHand User::get_tiles_to_pass() {
+    return _hand;
+}
+
+void Bot::preprocess_hand() {
+     // Search for sets of pung
+     /*
+     for (auto tile = _hand.begin(); tile != _hand.end(); tile++) {
+        for (auto tile_to_cmp = tile + 1; tile_to_cmp != _hand.end(); tile_to_cmp++) {
+            if ()
+        }
+     }
+     */
+     for (auto tile : _hand) {
+        
+     }
+}
+
+MahjongHand Bot::get_tiles_to_pass() {
+    return _hand;
+}
+
 #endif

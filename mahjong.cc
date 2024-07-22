@@ -3,6 +3,7 @@
 
 #include "mahjong.h"
 
+// TODO: Receive name of player and number of bots
 void Mahjong::create_match(std::list<std::string> list_of_player_names) {
     if (list_of_player_names.size() < MIN_NUM_PLAYERS ||
         list_of_player_names.size() > MAX_NUM_PLAYERS) {
@@ -24,7 +25,8 @@ void Mahjong::create_players(std::list<std::string> list_of_player_names) {
 
     // Create new players
     Player *new_player = nullptr;
-    bool user_created = false;
+    // TODO: Set as false, only bots for testing
+    bool user_created = true;
     for (auto player_str : list_of_player_names) {
         if (user_created) {
             new_player = new Bot(player_str);            

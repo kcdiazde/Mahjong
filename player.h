@@ -12,6 +12,7 @@ class Player {
 
   protected:
     std::string _name;
+    MahjongHand _sets[4];
     MahjongHand _hand;
     MahjongHand _flowers;
     uint16_t _points;
@@ -27,7 +28,7 @@ class Player {
     uint8_t get_num_tiles_in_hand() { return _hand.size(); }
     std::string get_name() { return _name; }
     void sort_hand();
-    virtual std::vector<MahjongTile*> get_tiles_to_pass() = 0;
+    virtual MahjongHand get_tiles_to_pass() = 0;
 };
 
 class User : public Player {
@@ -38,23 +39,24 @@ class User : public Player {
     explicit User(std::string name) : Player(name) {};
     ~User() = default;
 
-    std::vector<MahjongTile*> get_tiles_to_pass() {
-      return _hand;
-    }
-
+    MahjongHand get_tiles_to_pass();
 };
 
+// TODO: Keep count of tiles that have come out
 class Bot : public Player {
   protected:
+    MahjongHand _concealed_sets;
+    MahjongHand _usefull_tiles;
+    MahjongHand _unwanted_tiles;
+    
 
   public:
     explicit Bot() {};
     explicit Bot(std::string name) : Player(name) {};
     ~Bot() = default;
-    
-    std::vector<MahjongTile*> get_tiles_to_pass() {
-      return _hand;
-    }
+
+    MahjongHand get_tiles_to_pass();
+    void preprocess_hand();
 };
 
 #endif
