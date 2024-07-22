@@ -91,7 +91,7 @@ void MahjongSet::shuffle() {
 
 MahjongTile* MahjongSet::take_tile() {
     MahjongTile* tile_to_remove = _mahjong_set[0];
-    _mahjong_set.erase(_mahjong_set.begin(), _mahjong_set.begin()+1);
+    _mahjong_set.erase(_mahjong_set.begin());
     return tile_to_remove;
 }
 
