@@ -86,12 +86,22 @@ void Mahjong::print_players_hands() {
     }
 }
 
+void Mahjong::pass_3_tiles_to_next_player() {
+    for (auto player : _players) {
+        Bot * bot_player = dynamic_cast<Bot*>(player);
+        if (bot_player) {
+            bot_player->preprocess_hand();
+        }
+    }
+}
+
 int main() {
     printf("Welcome to mahjong\n\n");
 
     Mahjong my_mahjong = Mahjong();
     my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
     my_mahjong.print_players_hands();
+    my_mahjong.pass_3_tiles_to_next_player();
 
     return 0;
 }

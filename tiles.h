@@ -13,13 +13,13 @@
 
 class MahjongTile {
   protected:
-    static uint8_t _unique_id;
+    static TileId _unique_id;
 
     TileGroup _tile_group;
     std::string _name;
-    uint8_t _id;
+    TileId _id;
 
-    static uint8_t get_unique_id();
+    static TileId get_unique_id();
 
   public:
     // TODO: Clean constructors
@@ -36,8 +36,7 @@ class MahjongTile {
     const TileGroup get_group() const { return _tile_group; }
     bool is_flower() { return _tile_group.name == FLOWER.name; }
     const std::string get_name() const { return _name; }
-    const std::string get_full_name() const { return _tile_group.name + _name; }
-    const uint8_t get_id() const {return _id;}
+    const TileId get_id() const {return _id;}
     static bool tilesCustomComparator(const MahjongTile *a,
                                       const MahjongTile *b);
 };

@@ -57,6 +57,8 @@ class Bot : public Player {
 
     MahjongHand get_tiles_to_pass();
     void preprocess_hand();
+    void move_tiles_to_concealed(TileId id);
+    void print_concealed();
 };
 
 #endif

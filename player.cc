@@ -33,20 +33,47 @@ MahjongHand User::get_tiles_to_pass() {
 
 void Bot::preprocess_hand() {
      // Search for sets of pung
-     /*
-     for (auto tile = _hand.begin(); tile != _hand.end(); tile++) {
-        for (auto tile_to_cmp = tile + 1; tile_to_cmp != _hand.end(); tile_to_cmp++) {
-            if ()
+     // TODO: need to expand for so I can reset the count if I moved tiles
+    for (auto tile : _hand) {
+        uint8_t wanted_id = tile->get_id();
+        uint8_t wanted_id_num = 0;
+
+        for (auto sub_tile : _hand) {
+            if (sub_tile->get_id() == wanted_id) {
+                ++wanted_id_num;
+            }
         }
-     }
-     */
-     for (auto tile : _hand) {
-        
-     }
+
+        if (wanted_id_num >= 3) {
+            move_tiles_to_concealed(tile->get_id());
+            // TODO: RESET COUNTER
+        }
+    }
+}
+
+void Bot::move_tiles_to_concealed(TileId id) {
+    for (auto tile_it = _hand.begin(); tile_it != _hand.end();) {
+        MahjongTile * tile = *tile_it;
+        if (tile->get_id() == id) {
+            _concealed_sets.push_back(tile);
+            _hand.erase(tile_it);
+            tile_it = _hand.begin();
+        } else {
+            tile_it++;
+        }
+    }
+    print_concealed();
 }
 
 MahjongHand Bot::get_tiles_to_pass() {
     return _hand;
+}
+
+void Bot::print_concealed() {
+    printf("******Concealed******\n");
+    for (auto tile : _concealed_sets) {
+        tile->print();
+    }
 }
 
 #endif

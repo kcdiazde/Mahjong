@@ -9,9 +9,9 @@ uint8_t MahjongTile::_unique_id = 0;
 
 // Constructor
 MahjongSet::MahjongSet() {
+    create_flower_tiles();
     create_dragon_tiles();
     create_wind_tiles();
-    create_flower_tiles();
     create_symbol_tiles();
     create_bamboo_tiles();
     create_dot_tiles();
@@ -96,32 +96,6 @@ MahjongTile *MahjongSet::take_tile() {
 bool MahjongTile::tilesCustomComparator(const MahjongTile *a,
                                         const MahjongTile *b) {
     return a->get_id() < b->get_id();
-    // Old sort method
-    /*
-    TileGroup a_group = a->get_group();
-    TileGroup b_group = b->get_group();
-
-    bool is_same_category = (a_group.name == b_group.name);
-
-    if (is_same_category) {
-        // If it has a numeric value sort by value
-        if (a_group.has_a_number) {
-            const MahjongTileNumerical *a_num =
-                dynamic_cast<const MahjongTileNumerical *>(a);
-            const MahjongTileNumerical *b_num =
-                dynamic_cast<const MahjongTileNumerical *>(b);
-                return a_num->get_value() < b_num->get_value();
-        // Else sort by alphabetical order based on first char
-        } else {
-            std::string a_char = a->get_name();
-            std::string b_char = a->get_name();
-            return a_char[0] < b_char[0];
-        }
-    } else {
-        // Low priority means better
-        return a_group.priority < b_group.priority;
-    }
-    */
 }
 
 uint8_t MahjongTile::get_unique_id() {

@@ -25,6 +25,7 @@ class Mahjong {
     void deal_tiles();
     void deal_tile_to_player(Player *player);
     void print_players_hands();
+    void pass_3_tiles_to_next_player();
 };
 
 #endif

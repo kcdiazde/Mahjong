@@ -8,6 +8,8 @@
 #define MIN_NUM_PLAYERS 2
 #define MAX_NUM_PLAYERS 4
 
+typedef uint8_t TileId;
+
 struct TileGroup {
     std::string name;
     bool has_a_number;
