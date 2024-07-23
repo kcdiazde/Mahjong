@@ -1,4 +1,4 @@
 # Mahjong
 Mahjong 2D simulator based on the Classical chinese game
 
-![image](https://github.com/user-attachments/assets/85c46381-d839-49a0-a6f2-fea3d3087694)
+![image](https://github.com/user-attachments/assets/dfbfdd58-40a1-4527-b893-ce110c70093d)
