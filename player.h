@@ -5,8 +5,10 @@
 #include "mahjong_common.h"
 #include "tiles.h"
 #include <string>
+#include <list>
 
 typedef std::vector<MahjongTile *> MahjongHand;
+typedef std::vector<MahjongTile *>::iterator HandIterator;
 
 class Player {
 
@@ -33,10 +35,9 @@ class Player {
 
 class User : public Player {
   protected:
-
   public:
-    explicit User() {};
-    explicit User(std::string name) : Player(name) {};
+    explicit User(){};
+    explicit User(std::string name) : Player(name){};
     ~User() = default;
 
     MahjongHand get_tiles_to_pass();
@@ -46,19 +47,25 @@ class User : public Player {
 class Bot : public Player {
   protected:
     MahjongHand _concealed_sets;
-    MahjongHand _usefull_tiles;
+    MahjongHand _useful_tiles;
     MahjongHand _unwanted_tiles;
-    
 
   public:
-    explicit Bot() {};
-    explicit Bot(std::string name) : Player(name) {};
+    explicit Bot(){};
+    explicit Bot(std::string name) : Player(name){};
     ~Bot() = default;
 
     MahjongHand get_tiles_to_pass();
     void preprocess_hand();
-    void move_tiles_to_concealed(TileId id);
+    void find_and_conceal_pungs();
+    void find_and_conceal_chows();
+    void find_and_move_pairs();
+    void move_pung_to_concealed(TileId id);
+    void move_chow_to_concealed(HandIterator);
+    void move_tiles_to_useful(TileId id);
+    void move_tiles_to_useful(std::list<TileId> list_of_ids);
     void print_concealed();
+    void print_wanted();
 };
 
 #endif
