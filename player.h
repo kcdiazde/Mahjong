@@ -6,6 +6,7 @@
 #include "tiles.h"
 #include <string>
 #include <list>
+#include <iostream>
 
 typedef std::vector<MahjongTile *> MahjongHand;
 typedef std::vector<MahjongTile *>::iterator HandIterator;
@@ -60,10 +61,12 @@ class Bot : public Player {
     void find_and_conceal_pungs();
     void find_and_conceal_chows();
     void find_and_move_pairs();
+    void find_and_move_potential_chows();
+    bool move_tile_between_hands(MahjongHand *src_hand, MahjongHand *dst_hand, TileId tile_id);
     void move_pung_to_concealed(TileId id);
-    void move_chow_to_concealed(HandIterator);
-    void move_tiles_to_useful(TileId id);
-    void move_tiles_to_useful(std::list<TileId> list_of_ids);
+    void move_chow_to_concealed(TileId id);
+    void move_pair_to_useful(TileId id);
+    void move_chow_to_useful(TileId chow_tile1, TileId chow_tile2);
     void print_concealed();
     void print_wanted();
 };
