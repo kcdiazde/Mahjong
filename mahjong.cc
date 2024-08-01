@@ -13,6 +13,13 @@ void Mahjong::create_match(std::list<std::string> list_of_player_names) {
     create_players(list_of_player_names);
     create_set();
     deal_tiles();
+
+    for (auto player : _players) {
+        Bot * bot_player = dynamic_cast<Bot*>(player);
+        if (bot_player) {
+            bot_player->preprocess_hand();
+        }
+    }
 }
 
 void Mahjong::create_players(std::list<std::string> list_of_player_names) {
@@ -86,14 +93,23 @@ void Mahjong::print_players_hands() {
     }
 }
 
+/*
 void Mahjong::pass_3_tiles_to_next_player() {
     for (auto player : _players) {
         Bot * bot_player = dynamic_cast<Bot*>(player);
         if (bot_player) {
             bot_player->preprocess_hand();
+            MahjongHand hand_to_pass = bot_player->/_pass();
+            printf("%s to move:\n", bot_player->get_name().c_str());
+
+            for (auto tile : hand_to_pass) {
+                tile->print();
+            }
+
         }
     }
 }
+*/
 
 int main() {
     printf("Welcome to mahjong\n\n");
@@ -101,7 +117,7 @@ int main() {
     Mahjong my_mahjong = Mahjong();
     my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
     // my_mahjong.print_players_hands();
-    my_mahjong.pass_3_tiles_to_next_player();
+    // my_mahjong.pass_3_tiles_to_next_player();
 
     printf("Mahjong ended\n");
 

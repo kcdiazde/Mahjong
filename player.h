@@ -31,7 +31,13 @@ class Player {
     uint8_t get_num_tiles_in_hand() { return _hand.size(); }
     std::string get_name() { return _name; }
     void sort_hand();
-    virtual MahjongHand get_tiles_to_pass() = 0;
+    bool found_tile_with_id_and_group(TileId tile_id, std::string group);
+    bool tile_is_pung(MahjongTile tile);
+    bool tile_is_partial_pung(MahjongTile tile);
+    bool tile_is_chow(MahjongTile tile);
+    bool tile_is_partial_chow(MahjongTile tile);
+    virtual void pass_3_tiles(Player * receiver) = 0;
+    virtual void receive_tile(MahjongTile * tile) = 0;
 };
 
 class User : public Player {
@@ -41,7 +47,8 @@ class User : public Player {
     explicit User(std::string name) : Player(name){};
     ~User() = default;
 
-    MahjongHand get_tiles_to_pass();
+    void pass_3_tiles(Player * receiver);
+    void receive_tile(MahjongTile * tile);
 };
 
 // TODO: Keep count of tiles that have come out
@@ -50,13 +57,14 @@ class Bot : public Player {
     MahjongHand _concealed_sets;
     MahjongHand _useful_tiles;
     MahjongHand _unwanted_tiles;
+    MahjongHand _tiles_to_pass;
 
   public:
     explicit Bot(){};
     explicit Bot(std::string name) : Player(name){};
     ~Bot() = default;
 
-    MahjongHand get_tiles_to_pass();
+    // MahjongHand get_tiles_to_pass();
     void preprocess_hand();
     void find_and_conceal_pungs();
     void find_and_conceal_chows();
@@ -69,6 +77,10 @@ class Bot : public Player {
     void move_chow_to_useful(TileId chow_tile1, TileId chow_tile2);
     void print_concealed();
     void print_wanted();
+
+
+    void pass_3_tiles(Player * receiver);
+    void receive_tile(MahjongTile * tile);
 };
 
 #endif

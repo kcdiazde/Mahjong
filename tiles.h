@@ -36,6 +36,7 @@ class MahjongTile {
     const TileGroup get_group() const { return _tile_group; }
     bool is_flower() { return _tile_group.name == FLOWER.name; }
     const std::string get_name() const { return _name; }
+    const std::string get_full_name() const { return _name + " " + _tile_group.name.c_str(); }
     const TileId get_id() const {return _id;}
     static bool tilesCustomComparator(const MahjongTile *a,
                                       const MahjongTile *b);
