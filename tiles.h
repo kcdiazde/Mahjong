@@ -65,6 +65,7 @@ class MahjongSet {
     void print();
     void shuffle();
     MahjongTile *take_tile();
+    bool get_num_tiles() {return _mahjong_set.size();}
 
   protected:
     std::vector<MahjongTile *> _mahjong_set;
@@ -77,6 +78,7 @@ class MahjongSet {
     void create_symbol_tiles();
     void create_bamboo_tiles();
     void create_dot_tiles();
+    
 };
 
 #endif

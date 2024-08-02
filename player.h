@@ -15,7 +15,7 @@ class Player {
 
   protected:
     std::string _name;
-    MahjongHand _sets[4];
+    MahjongHand _sets;
     MahjongHand _hand;
     MahjongHand _flowers;
     MahjongHand _tiles_to_pass;
@@ -28,21 +28,30 @@ class Player {
     virtual ~Player() = default;
 
     void print_hand();
+    void print_sets();
     void print_tiles_to_pass();
     void print_tiles_received();
     void deal_tile(MahjongTile *);
     uint8_t get_num_total_tiles() { return _hand.size() + _flowers.size(); }
     uint8_t get_num_tiles_in_hand() { return _hand.size(); }
+    uint8_t get_num_tiles_set_and_hand() { return _hand.size() + _sets.size(); }
     std::string get_name() { return _name; }
     void sort_hand();
     bool found_tile_with_id_and_group(TileId tile_id, std::string group);
     bool move_tile_between_hands(MahjongHand *src_hand, MahjongHand *dst_hand, TileId tile_id);
+    void remove_tile(TileId tile_id);
     bool tile_is_pung(MahjongTile tile);
     bool tile_is_partial_pung(MahjongTile tile);
     bool tile_is_chow(MahjongTile tile);
     bool tile_is_partial_chow(MahjongTile tile);
     void pass_3_tiles(Player * receiver);
     void move_received_tiles_to_hand();
+    void play();
+    void play_pungs();
+    void play_chows();
+    MahjongTile * get_tile_to_discard();
+    bool wants_discard_tile(MahjongTile * tile);
+    bool has_won();
 
 };
 
