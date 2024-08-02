@@ -93,31 +93,37 @@ void Mahjong::print_players_hands() {
     }
 }
 
-/*
 void Mahjong::pass_3_tiles_to_next_player() {
-    for (auto player : _players) {
-        Bot * bot_player = dynamic_cast<Bot*>(player);
-        if (bot_player) {
-            bot_player->preprocess_hand();
-            MahjongHand hand_to_pass = bot_player->/_pass();
-            printf("%s to move:\n", bot_player->get_name().c_str());
+    // Bot * bot_player = dynamic_cast<Bot*>(player);
+    // if (bot_player) {
+    uint8_t player_num = 1;
+    for (auto player_it = _players.begin(); player_it != _players.end(); ++player_it) {
+        Player * player = *player_it;
 
-            for (auto tile : hand_to_pass) {
-                tile->print();
+        if (player_num == (_players.size())) {
+            player->pass_3_tiles(_players[0]);
+        } else {
+            auto next_player_it = std::next(player_it, 1);
+            Player * next_player = *next_player_it;
+            if (next_player) {
+                player->pass_3_tiles(next_player);
             }
-
         }
+        ++player_num;
+    }
+
+    for (auto player : _players) {
+        player->move_received_tiles_to_hand();
     }
 }
-*/
 
 int main() {
     printf("Welcome to mahjong\n\n");
 
     Mahjong my_mahjong = Mahjong();
     my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
-    // my_mahjong.print_players_hands();
-    // my_mahjong.pass_3_tiles_to_next_player();
+    my_mahjong.pass_3_tiles_to_next_player();
+    my_mahjong.print_players_hands();
 
     printf("Mahjong ended\n");
 

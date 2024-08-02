@@ -125,15 +125,28 @@ bool Player::tile_is_partial_chow(MahjongTile tile) {
            prev_prev_tile_found;
 }
 
-void User::pass_3_tiles(Player *receiver) {}
-void User::receive_tile(MahjongTile *tile) {}
+void Player::pass_3_tiles(Player *receiver) {
+    while(_tiles_to_pass.size()) {
+        move_tile_between_hands(&_tiles_to_pass, &(receiver->_tiles_received), _tiles_to_pass[0]->get_id());
+    }
+}
+
+void Player::move_received_tiles_to_hand() {
+    while(_tiles_received.size()) {
+        move_tile_between_hands(&_tiles_received, &_hand, _tiles_received[0]->get_id());
+    }
+
+    sort_hand();
+}
 
 void Bot::preprocess_hand() {
     move_tiles_to_pass();
+    /*
     print_hand();
     print_pungs();
     print_chows();
     print_tiles_to_pass();
+    */
 }
 
 void Bot::move_tiles_to_pass() {
@@ -161,7 +174,7 @@ void Bot::move_tiles_to_pass() {
     }
 }
 
-bool Bot::move_tile_between_hands(MahjongHand *src_hand, MahjongHand *dst_hand,
+bool Player::move_tile_between_hands(MahjongHand *src_hand, MahjongHand *dst_hand,
                                   TileId tile_id) {
     bool tile_was_removed = false;
     for (auto tile_it = src_hand->begin(); tile_it != src_hand->end();
@@ -177,39 +190,7 @@ bool Bot::move_tile_between_hands(MahjongHand *src_hand, MahjongHand *dst_hand,
     return tile_was_removed;
 }
 
-void Bot::pass_3_tiles(Player *receiver) {}
-
-/*
-void Bot::pass_3_tiles(Player *receiver) {
-    const uint8_t TILES_TO_MOVE = 3;
-    uint8_t num_passed_tiles = 0;
-
-    uint8_t num_tiles_to_discard = _hand.size() + _useful_tiles.size();
-
-    // If not enough tiles in hand and usefull, take from concealed
-    if (num_tiles_to_discard < TILES_TO_MOVE) {
-        for (auto tile : _concealed_sets) {
-            move_tile_between_hands(&_concealed_sets, &_tiles_to_pass,
-                                    tile->get_id());
-            // If tiles taken are a Kung, then remove the needed tile
-            if (_tiles_to_pass[0]->get_id() == _concealed_sets[0]->get_id()) {
-                move_tile_between_hands(&_concealed_sets, &_unwanted_tiles,
-                                        _concealed_sets[0]->get_id());
-            }
-            if (_tiles_to_pass.size() == TILES_TO_MOVE) {
-                break;
-            }
-        }
-    }
-}
-*/
-
-void Bot::receive_tile(MahjongTile *tile) {
-
-    // Search if tile forms a kung in concealed or sets (function)
-    // Search if tile forms a
-}
-
+// TODO: Common function to print
 void Bot::print_pungs() {
     printf("******%s's Pungs******\n", _name.c_str());
     for (auto tile : _hand) {
@@ -233,6 +214,14 @@ void Bot::print_chows() {
 void Player::print_tiles_to_pass() {
     printf("******%s's Tiles to pass******\n", _name.c_str());
     for (auto tile : _tiles_to_pass) {
+        tile->print();
+    }
+    printf("\n");
+}
+
+void Player::print_tiles_received() {
+    printf("******%s's Tiles received******\n", _name.c_str());
+    for (auto tile : _tiles_received) {
         tile->print();
     }
     printf("\n");
