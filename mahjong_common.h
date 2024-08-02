@@ -8,6 +8,7 @@
 #define MIN_NUM_PLAYERS 2
 #define MAX_NUM_PLAYERS 4
 #define TILES_IN_PUNG 3
+#define NUM_TILES_TO_PASS 3
 
 typedef uint8_t TileId;
 

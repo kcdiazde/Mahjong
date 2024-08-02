@@ -124,162 +124,40 @@ bool Player::tile_is_partial_chow(MahjongTile tile) {
     return next_tile_found || next_next_tile_found || prev_tile_found ||
            prev_prev_tile_found;
 }
+
 void User::pass_3_tiles(Player *receiver) {}
 void User::receive_tile(MahjongTile *tile) {}
 
 void Bot::preprocess_hand() {
-    // TODO: Consider removing this functions
-    /*find_and_conceal_pungs();
-    find_and_conceal_chows();
-    find_and_move_pairs();
-    find_and_move_potential_chows();
-
-    print_concealed();
-    print_wanted();
-    */
-
+    move_tiles_to_pass();
     print_hand();
+    print_pungs();
+    print_chows();
+    print_tiles_to_pass();
+}
 
+void Bot::move_tiles_to_pass() {
+    // First search for useless tiles
     for (auto tile : _hand) {
         bool is_pung = tile_is_pung(*tile);
-        bool is_partial_pung = tile_is_partial_pung(*tile);
-        bool is_chow = tile_is_chow(*tile);
-        bool is_partial_chow = tile_is_partial_chow(*tile);
-        if (is_pung) {
-            printf("Tile %s is pung\n", tile->get_full_name().c_str());
-        } else if (is_partial_pung) {
-            printf("Tile %s is partial pung\n", tile->get_full_name().c_str());
-        }
-        if (is_chow) {
-            printf("Tile %s is chow\n", tile->get_full_name().c_str());
-        } else if (is_partial_chow) {
-            printf("Tile %s is partial chow\n", tile->get_full_name().c_str());
-        }
-    }
-}
+        bool is_partial_pung = tile_is_pung(*tile);
+        bool is_chow = tile_is_pung(*tile);
+        bool is_partial_chow = tile_is_pung(*tile);
 
-void Bot::find_and_conceal_pungs() {
-    for (auto tile_it = _hand.begin(); tile_it != _hand.end();) {
-        MahjongTile *tile = *tile_it;
-        uint8_t wanted_id = tile->get_id();
-        uint8_t tiles_with_wanted_id = 0;
-
-        for (auto sub_tile : _hand) {
-            if (sub_tile->get_id() == wanted_id) {
-                ++tiles_with_wanted_id;
-            }
+        bool tile_is_useful =
+            (is_pung || is_partial_pung || is_chow || is_partial_chow);
+        if (!tile_is_useful) {
+            move_tile_between_hands(&_hand, &_tiles_to_pass, tile->get_id());
         }
 
-        const uint8_t PUNG_OF_TILES = 3;
-        if (tiles_with_wanted_id >= PUNG_OF_TILES) {
-            move_pung_to_concealed(tile->get_id());
-            tile_it = _hand.begin();
-        } else {
-            tile_it++;
+        if (_tiles_to_pass.size() == NUM_TILES_TO_PASS) {
+            break;
         }
     }
-}
 
-void Bot::find_and_conceal_chows() {
-    for (auto tile_it = _hand.begin(); tile_it != _hand.end();) {
-        MahjongTile *tile = *tile_it;
-        if (!(tile->get_group().has_a_number)) {
-            ++tile_it;
-            continue;
-        }
-
-        TileId next_id = tile->get_id() + 1;
-        TileId next_next_id = tile->get_id() + 2;
-        bool chow_found = false;
-
-        for (auto sub_tile : _hand) {
-            bool tiles_are_same_group =
-                (tile->get_group().name == sub_tile->get_group().name);
-            if ((sub_tile->get_id() == next_id) && tiles_are_same_group) {
-                for (auto sub_sub_tile : _hand) {
-                    tiles_are_same_group = (tile->get_group().name ==
-                                            sub_sub_tile->get_group().name);
-                    if (sub_sub_tile->get_id() == next_next_id) {
-                        chow_found = true;
-                        break;
-                    }
-                }
-                if (chow_found) {
-                    break;
-                }
-            }
-        }
-
-        if (chow_found) {
-            move_chow_to_concealed(tile->get_id());
-            tile_it = _hand.begin();
-            chow_found = false;
-        } else {
-            tile_it++;
-        }
-    }
-}
-
-void Bot::find_and_move_pairs() {
-    for (auto tile_it = _hand.begin(); tile_it != _hand.end();) {
-        MahjongTile *tile = *tile_it;
-        uint8_t wanted_id = tile->get_id();
-        uint8_t tiles_with_wanted_id = 0;
-
-        for (auto sub_tile : _hand) {
-            if (sub_tile->get_id() == wanted_id) {
-                ++tiles_with_wanted_id;
-            }
-        }
-
-        const uint8_t PAIR_OF_TILES = 2;
-        if (tiles_with_wanted_id == PAIR_OF_TILES) {
-            move_pair_to_useful(tile->get_id());
-            tile_it = _hand.begin();
-        } else {
-            tile_it++;
-        }
-    }
-}
-
-void Bot::find_and_move_potential_chows() {
-    for (auto tile_it = _hand.begin(); tile_it != _hand.end();) {
-        MahjongTile *tile = *tile_it;
-
-        if (!(tile->get_group().has_a_number)) {
-            ++tile_it;
-            continue;
-        }
-
-        TileId id = tile->get_id();
-        TileId next_id = id + 1;
-        TileId next_next_id = id + 2;
-
-        bool chow_found = false;
-
-        for (auto sub_tile : _hand) {
-            std::string tile_group_name = tile->get_group().name;
-            std::string subtile_group_name = sub_tile->get_group().name;
-            if (tile_group_name != subtile_group_name) {
-                continue;
-            }
-
-            bool next_id_is_chow = (sub_tile->get_id() == next_id);
-            bool next_next_id_is_chow = (sub_tile->get_id() == next_next_id);
-            if (next_id_is_chow || next_next_id_is_chow) {
-                TileId chow_id = (next_id_is_chow) ? next_id : next_next_id;
-                move_chow_to_useful(id, chow_id);
-                chow_found = true;
-                break;
-            }
-        }
-
-        if (chow_found) {
-            tile_it = _hand.begin();
-            chow_found = false;
-        } else {
-            tile_it++;
-        }
+    // If no useless tiles found then pass other tiles
+    while (_tiles_to_pass.size() < NUM_TILES_TO_PASS) {
+        move_tile_between_hands(&_hand, &_tiles_to_pass, (_hand[0])->get_id());
     }
 }
 
@@ -299,88 +177,9 @@ bool Bot::move_tile_between_hands(MahjongHand *src_hand, MahjongHand *dst_hand,
     return tile_was_removed;
 }
 
-void Bot::move_pung_to_concealed(TileId id) {
-    bool tile_was_removed = false;
-    do {
-        tile_was_removed =
-            move_tile_between_hands(&_hand, &_concealed_sets, id);
-    } while (tile_was_removed);
-}
-
-void Bot::move_chow_to_concealed(TileId id) {
-    const uint8_t NUM_TILES_IN_CHOW = 3;
-    for (uint8_t chow_num = 0; chow_num < NUM_TILES_IN_CHOW; ++chow_num) {
-        move_tile_between_hands(&_hand, &_concealed_sets, id++);
-    }
-}
-
-void Bot::move_pair_to_useful(TileId id) {
-    bool tile_was_removed = false;
-    do {
-        tile_was_removed = move_tile_between_hands(&_hand, &_useful_tiles, id);
-    } while (tile_was_removed);
-}
-
-void Bot::move_chow_to_useful(TileId chow_tile1, TileId chow_tile2) {
-    move_tile_between_hands(&_hand, &_useful_tiles, chow_tile1);
-    move_tile_between_hands(&_hand, &_useful_tiles, chow_tile2);
-}
+void Bot::pass_3_tiles(Player *receiver) {}
 
 /*
-MahjongHand Bot::get_tiles_to_pass() {
-
-    std::list<MahjongHand *> hands_to_extract_from {&_hand, &_useful_tiles};
-    uint8_t tiles_moved = 0;
-    const uint8_t TILES_TO_MOVE = 3;
-
-    for (auto hand_to_extract : hands_to_extract_from) {
-        for (auto tile_it = hand_to_extract->begin(); tile_it !=
-hand_to_extract->end(); ++tile_it) { MahjongTile * tile = * tile_it;
-            move_tile_between_hands(hand_to_extract, &_tiles_to_pass,
-tile->get_id()); tiles_moved = _tiles_to_pass.size(); if (tiles_moved ==
-TILES_TO_MOVE) { return _tiles_to_pass;
-            }
-        }
-    }
-
-
-    const uint8_t TILES_TO_MOVE = 3;
-    uint8_t num_tiles_to_discard = _hand.size() + _useful_tiles.size();
-
-    // If not enough tiles in hand and usefull, take from concealed
-    if (num_tiles_to_discard < TILES_TO_MOVE) {
-        for (auto tile : _concealed_sets) {
-            move_tile_between_hands(&_concealed_sets, &_tiles_to_pass,
-tile->get_id());
-            // If tiles taken are a Kung, then remove the needed tile
-            if (_tiles_to_pass[0]->get_id() == _concealed_sets[0]->get_id()) {
-                move_tile_between_hands(&_concealed_sets, &_unwanted_tiles,
-_concealed_sets[0]->get_id());
-            }
-            if (_tiles_to_pass.size() == TILES_TO_MOVE) {
-                return _tiles_to_pass;
-            }
-        }
-    }
-
-    for (auto tile : _hand) {
-        move_tile_between_hands(&_hand, &_tiles_to_pass, tile->get_id());
-        if (_tiles_to_pass.size() == TILES_TO_MOVE) {
-            return _tiles_to_pass;
-        }
-    }
-
-    for (auto tile : _useful_tiles) {
-        move_tile_between_hands(&_useful_tiles, &_tiles_to_pass,
-tile->get_id()); if (_tiles_to_pass.size() == TILES_TO_MOVE) { return
-_tiles_to_pass;
-        }
-    }
-
-    return _tiles_to_pass;
-}
-*/
-
 void Bot::pass_3_tiles(Player *receiver) {
     const uint8_t TILES_TO_MOVE = 3;
     uint8_t num_passed_tiles = 0;
@@ -403,6 +202,7 @@ void Bot::pass_3_tiles(Player *receiver) {
         }
     }
 }
+*/
 
 void Bot::receive_tile(MahjongTile *tile) {
 
@@ -410,17 +210,29 @@ void Bot::receive_tile(MahjongTile *tile) {
     // Search if tile forms a
 }
 
-void Bot::print_concealed() {
-    printf("******%s's Concealed******\n", _name.c_str());
-    for (auto tile : _concealed_sets) {
-        tile->print();
+void Bot::print_pungs() {
+    printf("******%s's Pungs******\n", _name.c_str());
+    for (auto tile : _hand) {
+        bool is_pung = tile_is_pung(*tile);
+        if (is_pung) {
+            tile->print();
+        }
     }
-    printf("\n");
 }
 
-void Bot::print_wanted() {
-    printf("******%s's Wanted******\n", _name.c_str());
-    for (auto tile : _useful_tiles) {
+void Bot::print_chows() {
+    printf("******%s's Chows******\n", _name.c_str());
+    for (auto tile : _hand) {
+        bool is_chow = tile_is_chow(*tile);
+        if (is_chow) {
+            tile->print();
+        }
+    }
+}
+
+void Player::print_tiles_to_pass() {
+    printf("******%s's Tiles to pass******\n", _name.c_str());
+    for (auto tile : _tiles_to_pass) {
         tile->print();
     }
     printf("\n");
