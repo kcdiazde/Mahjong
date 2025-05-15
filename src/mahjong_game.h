@@ -1,8 +1,23 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 class MahjongGame {
+
+    const std::string TOOLS_PATH = MAHJONG_TOOLS;
+
+    std::string TOOLS_PATH_1 = TOOLS_PATH;
+    const std::string SOUND_1 = TOOLS_PATH_1.append("/soundtracks/soundtrack_1.mp3");
+
+    std::string TOOLS_PATH_2 = TOOLS_PATH;
+    const std::string SOUND_2 = TOOLS_PATH_2.append("/soundtracks/soundtrack_2.mp3");
+
+    std::string TOOLS_PATH_3 = TOOLS_PATH;
+    const std::string SOUND_3 = TOOLS_PATH_3.append("/soundtracks/soundtrack_3.mp3");
+
+    const std::vector<int> SOUNDTRACK_DURATION_SECS = {240, 220, 120};
+    const std::vector<std::string> SOUNDTRACKS = {SOUND_1, SOUND_2, SOUND_3};
 
   public:
     explicit MahjongGame() {
@@ -10,6 +25,7 @@ class MahjongGame {
         set_game_resolution();
         render_window();
         configure_text();
+        update_soundtrack();
         print_red_dragon();
     }
 
@@ -21,15 +37,31 @@ class MahjongGame {
     uint16_t _resolutionHeight = 0;
     float _ratio = 0;
     sf::RenderWindow _window;
-    // TODO: Set path relative to project location
     sf::Font * _font = nullptr;
     sf::Text * _text = nullptr;
     sf::Texture * _redDragonTexture = nullptr;
     sf::Sprite * _redDragonSprite = nullptr;
+    sf::Music * _music = nullptr;
+    sf::Clock _soundClock;
+    int _currentSoundtrackNum = 2;
 
   public:
     sf::RenderWindow * getWindow() {
         return &_window;
+    }
+
+    void handle_events() {
+        while (const std::optional event = _window.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>()) {
+                _window.close();
+            } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            {
+                if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+                    _window.close();
+                }
+            }
+        }
     }
 
     void get_aspect_ratio() {
@@ -60,7 +92,10 @@ class MahjongGame {
     }
 
     void configure_text() {
-        _font = new sf::Font("../tools/arial.ttf");
+        // TODO: static constexpr
+        std::string fontPath = MAHJONG_TOOLS;
+        fontPath.append("/fonts/arial.ttf");
+        _font = new sf::Font(fontPath);
         _text = new sf::Text(*_font);
         _text->setString("Welcome to Mahjong");
         _text->setCharacterSize(24);
@@ -70,25 +105,41 @@ class MahjongGame {
     }
 
     void print_red_dragon() {
-        _redDragonTexture = new sf::Texture("../mahjong_tiles/Red.png");
+        std::string redDragonPath = MAHJONG_TOOLS;
+        redDragonPath.append("/sprites/Red.png");
+        _redDragonTexture = new sf::Texture(redDragonPath);
         _redDragonSprite = new sf::Sprite(*_redDragonTexture);
         _redDragonSprite->setTexture(*_redDragonTexture);
 
         auto [width, height] = _redDragonTexture->getSize();
         auto [spriteWidth, spriteHeight] = _redDragonSprite->getScale();
-        // Magic numbers that look nice
         auto divW = _resolutionWidth / 500 / spriteWidth;
         _redDragonSprite->setScale({divW, divW * _ratio});
     }
 
+    void check_soundtrack_finished() {
+        auto elapsedTime = _soundClock.getElapsedTime().asSeconds();
+        if (elapsedTime >= SOUNDTRACK_DURATION_SECS[_currentSoundtrackNum]) {
+            update_soundtrack();        
+        }
+    }
+
+    void update_soundtrack() {
+        _currentSoundtrackNum = rand() % 3;
+        delete _music;
+        _music = new sf::Music(SOUNDTRACKS[_currentSoundtrackNum]);
+        play_soundtrack();
+    }
+
+    void play_soundtrack() {
+        _soundClock.restart();
+        _music->play();
+    }
+
     void display_game() {
         _window.clear(sf::Color::Green);
-        if (_text) {
-            _window.draw(*_text);
-        }
-        if (_redDragonSprite) {
-            _window.draw(*_redDragonSprite);
-        }
+        _window.draw(*_text);
+        _window.draw(*_redDragonSprite);
         _window.display();
     }
 
