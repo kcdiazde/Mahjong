@@ -15,6 +15,10 @@ FetchContent_MakeAvailable(SFML)
 
 set(SOURCES
     src/main.cpp
+    src/bot.cc
+    src/mahjong.cc
+    src/player.cc
+    src/tiles.cc
 )
 
 add_executable(main ${SOURCES})

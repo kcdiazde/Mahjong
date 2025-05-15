@@ -49,6 +49,9 @@ void Mahjong::create_players(std::list<std::string> list_of_player_names) {
 void Mahjong::create_set() {
     _set = new MahjongSet();
     _set->shuffle();
+    _set->shuffle();
+    _set->shuffle();
+    _set->shuffle();
 }
 
 void Mahjong::deal_tile_to_player(Player *player, MahjongTile *tile) {
@@ -178,7 +181,7 @@ void Mahjong::deal_tile_to_player(Player *current_player) {
     }
 }
 
-int main() {
+int fake_main() {
     printf("Welcome to mahjong\n\n");
 
     Mahjong my_mahjong = Mahjong();

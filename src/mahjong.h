@@ -10,13 +10,14 @@
 #include <vector>
 
 typedef std::vector<Player *>::iterator PlayerIterator;
+typedef std::vector<Player *> PlayersVector;
 
 class Mahjong {
 
   private:
     MahjongSet *_set;
     MahjongSet *_discarded_tiles;
-    std::vector<Player *> _players;
+    PlayersVector _players;
     uint8_t _current_player_id;
     bool _first_player_played;
     MahjongTile * _last_discard;
@@ -35,6 +36,7 @@ class Mahjong {
     void pass_3_tiles_to_next_player();
     bool play();
     void update_current_player();
+    PlayersVector * get_players() { return &_players; }
 };
 
 #endif
