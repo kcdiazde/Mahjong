@@ -27,7 +27,7 @@ void MahjongSet::create_tiles(TileGroup group, std::list<std::string> names) {
 
     // Create each tile name and add it to the set num_repeated_tiles times'
     for (auto tile_name : names) {
-        MahjongTile *tile = new MahjongTile(group, tile_name);
+        auto tile = std::make_shared<MahjongTile>(group, tile_name);
         for (int num_tiles = 0; num_tiles < num_repeated_tiles; num_tiles++) {
             _mahjong_set.push_back(tile);
         }
@@ -45,7 +45,7 @@ void MahjongSet::create_numbered_tiles(TileGroup group, int max_num_tile) {
     // Create each tile name and add it to the set num_repeated_tiles times'
     for (int tile_num = 0; tile_num < max_num_tile; tile_num++) {
         int real_tile_num = tile_num + 1;
-        MahjongTile *tile = new MahjongTileNumerical(group, real_tile_num);
+        auto tile = std::make_shared<MahjongTileNumerical>(group, real_tile_num);
         for (int num_tiles = 0; num_tiles < num_repeated_tiles; num_tiles++) {
             _mahjong_set.push_back(tile);
         }
@@ -83,18 +83,21 @@ void MahjongSet::shuffle() {
     // Create a random number generator based on the current time
     int seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine rng(seed);
+    // std::random_device rd;
+    // std::mt19937 gen(rd());
+
     // Shuffle
     std::shuffle(_mahjong_set.begin(), _mahjong_set.end(), rng);
 }
 
-MahjongTile *MahjongSet::take_tile() {
-    MahjongTile *tile_to_remove = _mahjong_set[0];
+MahjongTilePtr MahjongSet::take_tile() {
+    MahjongTilePtr tile_to_remove = _mahjong_set.front();
     _mahjong_set.erase(_mahjong_set.begin());
     return tile_to_remove;
 }
 
-bool MahjongTile::tilesCustomComparator(const MahjongTile *a,
-                                        const MahjongTile *b) {
+bool MahjongTile::tilesCustomComparator(const MahjongTilePtr a,
+                                        const MahjongTilePtr b) {
     return a->get_id() < b->get_id();
 }
 

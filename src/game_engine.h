@@ -194,7 +194,7 @@ class GameEngine {
         MahjongHand * player_hand = player.get_hand();
         MahjongHand hand = *player_hand;
         
-        MahjongTile * tile_1 = hand[0];
+        MahjongTilePtr tile_1 = hand[0];
         MahjongTile tile = * tile_1;
         std::cout << "Tile is: " << tile.get_full_name() << std::endl;
         auto tilePath = get_sprint_from_tile(tile);

@@ -5,15 +5,21 @@
 
 // TODO: Receive name of player and number of bots
 void Mahjong::create_match(std::list<std::string> list_of_player_names) {
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
     if (list_of_player_names.size() < MIN_NUM_PLAYERS ||
         list_of_player_names.size() > MAX_NUM_PLAYERS) {
         throw std::runtime_error("Game should have at least 1 player");
     }
 
+    _logger->info("Will create players");
     create_players(list_of_player_names);
+    _logger->info("Will create set");
     create_set();
+    _logger->info("Will deal tiles");
     deal_tiles();
 
+    _logger->info("Will preprocess hands\n");
     for (auto player : _players) {
         Bot *bot_player = dynamic_cast<Bot *>(player);
         if (bot_player) {
@@ -25,6 +31,8 @@ void Mahjong::create_match(std::list<std::string> list_of_player_names) {
 }
 
 void Mahjong::create_players(std::list<std::string> list_of_player_names) {
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
     // Empty-out if already populated
     while (_players.size()) {
         Player *temp_player = _players.front();
@@ -47,18 +55,20 @@ void Mahjong::create_players(std::list<std::string> list_of_player_names) {
 }
 
 void Mahjong::create_set() {
-    _set = new MahjongSet();
-    _set->shuffle();
-    _set->shuffle();
-    _set->shuffle();
-    _set->shuffle();
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
+    _set.shuffle();
 }
 
-void Mahjong::deal_tile_to_player(Player *player, MahjongTile *tile) {
+void Mahjong::deal_tile_to_player(Player *player, MahjongTilePtr tile) {
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
     player->deal_tile(tile);
 }
 
 void Mahjong::deal_tiles() {
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
     // Error checking
     for (auto player : _players) {
         if (player->get_num_total_tiles()) {
@@ -69,22 +79,24 @@ void Mahjong::deal_tiles() {
     // Start dealing the expected number of tiles to each player
     for (uint8_t num_tile = 0; num_tile < TILES_PER_PLAYER; num_tile++) {
         for (auto player : _players) {
-            // printf("Dealing to %s", player->get_name().c_str());
-            deal_tile_to_player(player, _set->take_tile());
+            auto tileToDeal = _set.take_tile();
+            deal_tile_to_player(player, tileToDeal);
         }
     }
 
     // Replenish flowers since they don't count as tile in hand
     for (auto player : _players) {
         while (player->get_num_tiles_in_hand() != TILES_PER_PLAYER) {
-            deal_tile_to_player(player, _set->take_tile());
+            auto tileToDeal = _set.take_tile();
+            deal_tile_to_player(player, tileToDeal);
         }
     }
 
     // First player starts with 1 extra tile
     Player *first_player = _players[0];
     while (first_player->get_num_tiles_in_hand() != (TILES_PER_PLAYER + 1)) {
-        deal_tile_to_player(first_player, _set->take_tile());
+        auto tileToDeal = _set.take_tile();
+        deal_tile_to_player(first_player, tileToDeal);
     }
 
     for (auto player : _players) {
@@ -93,12 +105,16 @@ void Mahjong::deal_tiles() {
 }
 
 void Mahjong::print_players_hands() {
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
     for (auto player : _players) {
         player->print_hand();
     }
 }
 
 void Mahjong::pass_3_tiles_to_next_player() {
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
     // Bot * bot_player = dynamic_cast<Bot*>(player);
     // if (bot_player) {
     uint8_t player_num = 1;
@@ -124,8 +140,9 @@ void Mahjong::pass_3_tiles_to_next_player() {
 }
 
 bool Mahjong::play() {
-    bool game_is_over = false;
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
 
+    bool game_is_over = false;
     Player *current_player = *_current_player_it;
 
     printf("Player %s will play\n", current_player->get_name().c_str());
@@ -136,8 +153,11 @@ bool Mahjong::play() {
         _first_player_played = true;
     }
     current_player->play();
-    _last_discard = current_player->get_tile_to_discard();
-    printf("%s was discarded\n", _last_discard->get_full_name().c_str());
+    auto tile_discarded = current_player->get_tile_to_discard();
+
+    _discards.push_back(tile_discarded);
+    
+    printf("%s was discarded\n", tile_discarded->get_full_name().c_str());
 
     if (current_player->has_won()) {
         printf("%s has won!\n", current_player->get_name().c_str());
@@ -145,7 +165,7 @@ bool Mahjong::play() {
         current_player->print_sets();
         game_is_over = true;
     }
-    if (_set->get_num_tiles() == 0) {
+    if (_set.get_num_tiles() == 0) {
         printf("No more tiles to play\n");
         game_is_over = true;
     }
@@ -156,6 +176,8 @@ bool Mahjong::play() {
 }
 
 void Mahjong::update_current_player() {
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
     ++_current_player_it;
     if (_current_player_it == _players.end()) {
         _current_player_it = _players.begin();
@@ -163,19 +185,24 @@ void Mahjong::update_current_player() {
 }
 
 void Mahjong::deal_tile_to_player(Player *current_player) {
-    if (!_last_discard) {
+    _logger->debug("%s::%s", CLASSNAME, __func__); 
+
+    if (!_discards.size()) {
         throw std::runtime_error("Last discard is NULL!");
     }
-    if (current_player->wants_discard_tile(_last_discard)) {
-        deal_tile_to_player(current_player, _last_discard);
-        _last_discard = nullptr;
+
+    auto last_discard = _discards[0];
+
+    if (current_player->wants_discard_tile(last_discard)) {
+        deal_tile_to_player(current_player, last_discard);
+        _discards.erase(_discards.begin());
     } else {
         do {
-            MahjongTile *tile_of_set = _set->take_tile();
-            if (!tile_of_set) {
+            auto tileToDeal = _set.take_tile();
+            if (!tileToDeal) {
                 throw std::runtime_error("Tile is NULL!");
             }
-            deal_tile_to_player(current_player, tile_of_set);
+            deal_tile_to_player(current_player, tileToDeal);
         } while (current_player->get_num_tiles_set_and_hand() !=
                  TILES_PER_PLAYER+1);
     }
@@ -183,6 +210,8 @@ void Mahjong::deal_tile_to_player(Player *current_player) {
 
 int fake_main() {
     printf("Welcome to mahjong\n\n");
+
+    Logger::instance().set_level(LogLevel::DEBUG);
 
     Mahjong my_mahjong = Mahjong();
     my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
@@ -194,7 +223,7 @@ int fake_main() {
         game_is_over = my_mahjong.play();
     } while(!game_is_over);
 
-    printf("Mahjong ended\n");
+    printf("Mahjong ended\n\n\n\n");
 
     return 0;
 }

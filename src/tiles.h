@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <memory>
 
 class MahjongTile {
   protected:
@@ -29,7 +30,11 @@ class MahjongTile {
           _id = get_unique_id();
         }
     // Virtual destructor to make class polymorphic
-    virtual ~MahjongTile() = default;
+    virtual ~MahjongTile(){
+        printf("GOOOOOOOOOOOOOOOOOODBYE WOOOOOOOOOOOOOOOOOOOOOOOOORLD!!!!!!!!!!!!!!!!!!!!!\n");
+        printf("Att: %s\n", get_full_name().c_str());
+        printf("ID: %d\n", get_id());
+    };
 
     void print() { printf("%s %s [ID: %d]\n", _name.c_str(), _tile_group.name.c_str(), _id); }
 
@@ -38,8 +43,8 @@ class MahjongTile {
     const std::string get_name() const { return _name; }
     const std::string get_full_name() const { return _name + " " + _tile_group.name.c_str(); }
     const TileId get_id() const {return _id;}
-    static bool tilesCustomComparator(const MahjongTile *a,
-                                      const MahjongTile *b);
+    static bool tilesCustomComparator(const std::shared_ptr<MahjongTile> a,
+                                      const std::shared_ptr<MahjongTile> b);
 };
 
 class MahjongTileNumerical : public MahjongTile {
@@ -59,16 +64,18 @@ class MahjongTileNumerical : public MahjongTile {
     uint8_t get_value() const { return _value; }
 };
 
+using MahjongTilePtr = std::shared_ptr<MahjongTile>;
+
 class MahjongSet {
   public:
     explicit MahjongSet();
     void print();
     void shuffle();
-    MahjongTile *take_tile();
+    MahjongTilePtr take_tile();
     bool get_num_tiles() {return _mahjong_set.size();}
 
   protected:
-    std::vector<MahjongTile *> _mahjong_set;
+    std::vector<MahjongTilePtr> _mahjong_set;
 
     void create_tiles(TileGroup group, std::list<std::string> names);
     void create_numbered_tiles(TileGroup group, int max_num_tile);
