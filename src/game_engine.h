@@ -194,16 +194,33 @@ class GameEngine {
         MahjongHand * player_hand = player.get_hand();
         MahjongHand hand = *player_hand;
         
-        MahjongTilePtr tile_1 = hand[0];
-        MahjongTile tile = * tile_1;
-        std::cout << "Tile is: " << tile.get_full_name() << std::endl;
-        auto tilePath = get_sprint_from_tile(tile);
+        // MahjongTilePtr tileP = hand[0];
+        // auto tilePath = get_sprint_from_tile(*tileP);
 
-        std::cout << "Tile path is: " << tilePath << std::endl;
-        
-        float y = _resolutionWidth / 2;
-        float x = 100;
-        display_tile(tilePath, y, x);
+        // // std::cout << "Tile is: " << tileP->get_full_name() << std::endl;
+        // // std::cout << "Tile path is: " << tilePath << std::endl;
+        // 
+        // float x = _resolutionHeight / 2;
+        // float y = _resolutionWidth / 2;
+        // display_tile(tilePath, x, y);
+
+        int x_offset = _resolutionHeight /2;
+        // int y_offset = (_resolutionWidth / 2) - (_tileWidth * 8 * _ratio);
+        int y_offset = (_resolutionWidth / 2) + 500;
+
+        auto hand_copy = hand;
+
+        std::vector<std::string> tilePaths;
+        for (const auto& tilePtr : hand_copy) {
+            auto tilePath = get_sprint_from_tile(*tilePtr);
+
+            std::cout << "Tile is: " << tilePtr->get_full_name() << std::endl;
+            std::cout << "Tile path is: " << tilePath << std::endl;
+            tilePaths.push_back(tilePath);
+        }
+
+        display_tiles(tilePaths, y_offset, x_offset);
+
     }
 
     void display_tile(std::string tilePath, float y, float x) {
@@ -215,6 +232,24 @@ class GameEngine {
         _window.clear(sf::Color::Green);
         _window.draw(*_text);
         _window.draw(tileSprite);
+        _window.display();
+    }
+
+    void display_tiles(std::vector<std::string>& tilePaths, float y, float x) {
+        _window.clear(sf::Color::Green);
+
+        auto x_offset = x;
+        auto y_offset = y;
+        for (const auto& tilePath : tilePaths) {
+            sf::Texture tileTexture(tilePath);
+            sf::Sprite tileSprite(tileTexture);
+            tileSprite.setScale({_tileWidth, _tileWidth * _ratio});
+            tileSprite.setPosition({y_offset, x_offset});
+            _window.draw(tileSprite);
+            y_offset += 50;
+        }
+
+        _window.draw(*_text);
         _window.display();
     }
 

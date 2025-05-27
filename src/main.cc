@@ -21,7 +21,7 @@ void simulateRun() {
 
 int main() {
 
-    bool simulate_game = true;
+    bool simulate_game = false;
 
     if (simulate_game) {
         simulateRun();
@@ -30,7 +30,7 @@ int main() {
 
     GameEngine gameEngine; 
     gameEngine.display_game();
-    Logger::instance().set_level(LogLevel::DEBUG);
+    Logger::instance().set_level(LogLevel::VERBOSE);
 
     Mahjong my_mahjong = Mahjong();
     my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
