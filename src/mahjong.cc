@@ -152,6 +152,12 @@ bool Mahjong::play() {
     } else {
         _first_player_played = true;
     }
+
+    if (_set.get_num_tiles() == 0) {
+        _logger->info("Ending due to no more tiles left :(");
+        return true;
+    }
+
     current_player->play();
     auto tile_discarded = current_player->get_tile_to_discard();
 
@@ -198,6 +204,9 @@ void Mahjong::deal_tile_to_player(Player *current_player) {
         _discards.erase(_discards.begin());
     } else {
         do {
+            if (_set.get_num_tiles() == 0) {
+                return;
+            }
             auto tileToDeal = _set.take_tile();
             if (!tileToDeal) {
                 throw std::runtime_error("Tile is NULL!");

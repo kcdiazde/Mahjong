@@ -2,6 +2,7 @@
 #define TILES_H
 
 #include "mahjong_common.h"
+#include "logger.h"
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -31,9 +32,9 @@ class MahjongTile {
         }
     // Virtual destructor to make class polymorphic
     virtual ~MahjongTile(){
-        printf("GOOOOOOOOOOOOOOOOOODBYE WOOOOOOOOOOOOOOOOOOOOOOOOORLD!!!!!!!!!!!!!!!!!!!!!\n");
-        printf("Att: %s\n", get_full_name().c_str());
-        printf("ID: %d\n", get_id());
+        Logger::instance().verbose("GOOOOOOOOOOOOOODBYE WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORLD!!!!!!!!!!!!!!!");
+        Logger::instance().verbose("Att: %s\n", get_full_name().c_str());
+        Logger::instance().verbose("ID: %d\n", get_id());
     };
 
     void print() { printf("%s %s [ID: %d]\n", _name.c_str(), _tile_group.name.c_str(), _id); }

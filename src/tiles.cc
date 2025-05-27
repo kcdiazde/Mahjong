@@ -80,17 +80,15 @@ void MahjongSet::print() {
 }
 
 void MahjongSet::shuffle() {
-    // Create a random number generator based on the current time
-    int seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine rng(seed);
-    // std::random_device rd;
-    // std::mt19937 gen(rd());
+    std::random_device rd;
+    std::mt19937 gen(rd());
 
     // Shuffle
-    std::shuffle(_mahjong_set.begin(), _mahjong_set.end(), rng);
+    std::shuffle(_mahjong_set.begin(), _mahjong_set.end(), rd);
 }
 
 MahjongTilePtr MahjongSet::take_tile() {
+    Logger::instance().debug("Tiles left %d", _mahjong_set.size());
     MahjongTilePtr tile_to_remove = _mahjong_set.front();
     _mahjong_set.erase(_mahjong_set.begin());
     return tile_to_remove;
