@@ -4,6 +4,7 @@
 #include <SFML/Audio.hpp>
 #include "tiles.h"
 #include "player.h"
+#include "logger.h"
 #include <iostream>
 
 class GameEngine {
@@ -24,6 +25,7 @@ class GameEngine {
 
   public:
     explicit GameEngine () {
+        _logger = &Logger::instance(); 
         get_aspect_ratio();
         set_game_resolution();
         render_window();
@@ -34,6 +36,7 @@ class GameEngine {
     }
 
   private:
+    Logger* _logger;
     std::vector<sf::VideoMode> _videoModes;
     uint16_t _maxHeight = 0;
     uint16_t _maxWidth = 0;
@@ -50,6 +53,9 @@ class GameEngine {
     int _currentSoundtrackNum = 2;
 
     int _tileWidth = 0;
+    int _tileHeight = 0;
+    int _tileScale = 0;
+    int _tileRealWidth = 0;
 
   public:
     sf::RenderWindow * getWindow() {
@@ -73,28 +79,30 @@ class GameEngine {
     void get_aspect_ratio() {
         // List of all video modes
         _videoModes = sf::VideoMode::getFullscreenModes();
-        _maxHeight = _videoModes[0].size.x;
-        _maxWidth = _videoModes[0].size.y;
+        _maxWidth = _videoModes[0].size.x;
+        _maxHeight = _videoModes[0].size.y;
     }
 
     void set_game_resolution() {
         // Use second resolution as default
         const auto kSecondResolution = 1;
         const auto kFirstResolution = 0;
-        const auto defaultHeight = (_videoModes.size() >= 2) ? kSecondResolution : kFirstResolution;
 
-        _resolutionWidth= _videoModes[defaultHeight].size.y;
-        _resolutionHeight = _videoModes[defaultHeight].size.x;
-        _ratio = _resolutionHeight / _resolutionWidth;
+        const auto defaultRes = (_videoModes.size() >= 2) ? kSecondResolution : kFirstResolution;
+
+        _resolutionWidth = _videoModes[defaultRes].size.x;
+        _resolutionHeight = _videoModes[defaultRes].size.y;
+        _ratio = static_cast<double>(_resolutionWidth) / static_cast<double>(_resolutionHeight);
+        _logger->info("Resolution set to W = %d, H = %d, ratio = %f", _resolutionWidth, _resolutionHeight, _ratio);
     }
 
     void render_window() {
-        _window.create(sf::VideoMode({_resolutionHeight, _resolutionWidth}), "Mahjong");
+        _window.create(sf::VideoMode({_resolutionWidth, _resolutionHeight}), "Mahjong");
 
-        float middlePositionY = (_maxWidth - _resolutionWidth);
-        float middlePositionX = (_maxHeight - _resolutionHeight) / 4;
+        float middlePositionX = (_maxWidth - _resolutionWidth) / 2;
+        float middlePositionY = (_maxHeight - _resolutionHeight) / 2;
 
-        _window.setPosition({middlePositionY, middlePositionX});
+        _window.setPosition({middlePositionX, middlePositionY});
     }
 
     void configure_text() {
@@ -107,7 +115,12 @@ class GameEngine {
         _text->setCharacterSize(24);
         _text->setFillColor(sf::Color::Black);
         _text->setStyle(sf::Text::Bold | sf::Text::Underlined);
-        _text->setPosition({100.f, 100.f});
+            
+        auto textPositionX = _resolutionWidth / 2 - (24 * 5);
+        auto textPositionY = _resolutionHeight / 4;
+
+
+        _text->setPosition({textPositionX, textPositionY});
     }
 
     void print_red_dragon() {
@@ -116,10 +129,10 @@ class GameEngine {
         _redDragonTexture = new sf::Texture(redDragonPath);
         _redDragonSprite = new sf::Sprite(*_redDragonTexture);
 
-        // auto [width, height] = _redDragonTexture->getSize();
-        auto [spriteWidth, spriteHeight] = _redDragonSprite->getScale();
-        auto divW = _resolutionWidth / 500 / spriteWidth;
-        _redDragonSprite->setScale({divW, divW * _ratio});
+        // // auto [width, height] = _redDragonTexture->getSize();
+        // auto [spriteWidth, spriteHeight] = _redDragonSprite->getScale();
+        // auto divW = _resolutionWidth / 500 / spriteWidth;
+        // _redDragonSprite->setScale({divW, divW * _ratio});
     }
 
     void get_tile_params() {
@@ -128,8 +141,15 @@ class GameEngine {
         auto sampleTexture = sf::Texture(tilePath);
         auto sampleSprite = sf::Sprite(sampleTexture);
 
-        auto [spriteWidth, spriteHeight] = sampleSprite.getScale();
-        _tileWidth = _resolutionWidth / 500 / spriteWidth;
+        auto scale = sampleTexture.getSize();
+        float tile_ratio = static_cast<float>(scale.y) / static_cast<float>(scale.x);
+
+        _logger->info("spriteWidth = %d, spriteHeight = %d, ratio = %f", scale.x, scale.y, tile_ratio);
+
+        int tilesPerBoard = _resolutionWidth / 700.0;
+        _tileScale = tile_ratio * tilesPerBoard;
+        _tileWidth = tilesPerBoard;
+        _tileRealWidth = scale.x * _tileScale;
     }
 
     void check_soundtrack_finished() {
@@ -189,24 +209,38 @@ class GameEngine {
         return tile_name;
     }
 
+    void display_tiles(std::vector<std::string>& tilePaths, int y, int x) {
+        _window.clear(sf::Color::Green);
+
+        int x_offset = x - (_tileRealWidth * 14);
+        int y_offset = y;
+
+        _logger->info("x_offset = %d, y_offset = %d", x_offset, y_offset);
+        _logger->info("tileScale = %d", _tileScale);
+        _logger->info("_tileRealWidth= %d", _tileRealWidth);
+
+        for (const auto& tilePath : tilePaths) {
+            sf::Texture tileTexture(tilePath);
+            sf::Sprite tileSprite(tileTexture);
+            tileSprite.setScale({_tileScale, _tileScale});
+            tileSprite.setPosition({x_offset, y_offset});
+            _window.draw(tileSprite);
+            x_offset += _tileRealWidth * 2;
+        }
+
+        _window.draw(*_text);
+        _window.display();
+    }
+
+
     void display_player_tiles(Player& player) {
         std::cout << "Player is: " << player.get_name() << std::endl;
         MahjongHand * player_hand = player.get_hand();
         MahjongHand hand = *player_hand;
         
-        // MahjongTilePtr tileP = hand[0];
-        // auto tilePath = get_sprint_from_tile(*tileP);
-
-        // // std::cout << "Tile is: " << tileP->get_full_name() << std::endl;
-        // // std::cout << "Tile path is: " << tilePath << std::endl;
-        // 
-        // float x = _resolutionHeight / 2;
-        // float y = _resolutionWidth / 2;
-        // display_tile(tilePath, x, y);
-
-        int x_offset = _resolutionHeight /2;
         // int y_offset = (_resolutionWidth / 2) - (_tileWidth * 8 * _ratio);
-        int y_offset = (_resolutionWidth / 2) + 500;
+        int x_offset = _resolutionWidth / 2;
+        int y_offset = _resolutionHeight * 3 / 4;
 
         auto hand_copy = hand;
 
@@ -232,24 +266,6 @@ class GameEngine {
         _window.clear(sf::Color::Green);
         _window.draw(*_text);
         _window.draw(tileSprite);
-        _window.display();
-    }
-
-    void display_tiles(std::vector<std::string>& tilePaths, float y, float x) {
-        _window.clear(sf::Color::Green);
-
-        auto x_offset = x;
-        auto y_offset = y;
-        for (const auto& tilePath : tilePaths) {
-            sf::Texture tileTexture(tilePath);
-            sf::Sprite tileSprite(tileTexture);
-            tileSprite.setScale({_tileWidth, _tileWidth * _ratio});
-            tileSprite.setPosition({y_offset, x_offset});
-            _window.draw(tileSprite);
-            y_offset += 50;
-        }
-
-        _window.draw(*_text);
         _window.display();
     }
 
