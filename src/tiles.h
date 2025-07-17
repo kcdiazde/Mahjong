@@ -73,7 +73,8 @@ class MahjongSet {
     void print();
     void shuffle();
     MahjongTilePtr take_tile();
-    bool get_num_tiles() {return _mahjong_set.size();}
+    int get_num_tiles() {return _mahjong_set.size();}
+    std::vector<MahjongTilePtr> get_tiles() { return _mahjong_set; }
 
   protected:
     std::vector<MahjongTilePtr> _mahjong_set;

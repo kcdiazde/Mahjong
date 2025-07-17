@@ -15,3 +15,6 @@ cmake --build .
 cd build
 ./bin/main
 
+# To ctest
+ctest -V
+ctest unit_tests -V

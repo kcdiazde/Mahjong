@@ -42,6 +42,7 @@ class Player {
     uint8_t get_num_total_tiles() { return _hand.size() + _flowers.size(); }
     uint8_t get_num_tiles_in_hand() { return _hand.size(); }
     uint8_t get_num_tiles_set_and_hand() { return _hand.size() + _sets.size(); }
+    uint8_t get_num_flowers() { return _flowers.size(); }
     std::string get_name() { return _name; }
     MahjongHand * get_hand() {return &_hand;}
     void sort_hand();
