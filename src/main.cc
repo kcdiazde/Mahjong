@@ -22,7 +22,7 @@ void simulateRun() {
 int main() {
     Logger::instance().set_level(LogLevel::INFO);
 
-    bool simulate_game = false;
+    bool simulate_game = true;
 
     if (simulate_game) {
         simulateRun();
