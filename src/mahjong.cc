@@ -139,13 +139,24 @@ void Mahjong::pass_3_tiles_to_next_player() {
     }
 }
 
+void Mahjong::check_players_integrity() {
+    for (const auto& player : _players) {
+        if (player->get_num_tiles_set_and_hand() != TILES_PER_PLAYER) {
+            char buffer[100];
+            sprintf(buffer, "%s has %d tiles", player->get_name().c_str(), player->get_num_tiles_set_and_hand());
+            std::string error = buffer;
+            throw std::runtime_error(error);
+        }
+    }
+}
+
 bool Mahjong::play() {
     _logger->debug("%s::%s", CLASSNAME, __func__); 
 
     bool game_is_over = false;
     Player *current_player = *_current_player_it;
 
-    printf("Player %s will play\n", current_player->get_name().c_str());
+    _logger->info("--- %s will play ---", current_player->get_name().c_str());
 
     if (_first_player_played) {
         deal_tile_to_player(current_player);
@@ -158,25 +169,31 @@ bool Mahjong::play() {
         return true;
     }
 
+    if (_player_was_updated) {
+        current_player = *_current_player_it;
+        _player_was_updated = false;
+    }
+
     current_player->play();
     auto tile_discarded = current_player->get_tile_to_discard();
 
     _discards.push_back(tile_discarded);
     
-    printf("%s was discarded\n", tile_discarded->get_full_name().c_str());
+    _logger->info("%s discarded %s\n", current_player->get_name().c_str(), tile_discarded->get_full_name().c_str());
 
     if (current_player->has_won()) {
-        printf("%s has won!\n", current_player->get_name().c_str());
+        _logger->info("%s has won!\n", current_player->get_name().c_str());
         current_player->print_hand();
         current_player->print_sets();
         game_is_over = true;
     }
     if (_set.get_num_tiles() == 0) {
-        printf("No more tiles to play\n");
+        _logger->info("No more tiles to play\n");
         game_is_over = true;
     }
 
     update_current_player();
+    check_players_integrity();
 
     return game_is_over;
 }
@@ -190,6 +207,18 @@ void Mahjong::update_current_player() {
     }
 }
 
+bool Mahjong::check_if_player_can_steal(MahjongTile& tile) {
+    for (const auto& player : _players) {
+        if (player->tile_is_partial_pung(tile)) {
+            _current_player_it = std::find(_players.begin(), _players.end(), player);
+            _player_was_updated = true;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Mahjong::deal_tile_to_player(Player *current_player) {
     _logger->debug("%s::%s", CLASSNAME, __func__); 
 
@@ -199,19 +228,49 @@ void Mahjong::deal_tile_to_player(Player *current_player) {
 
     auto last_discard = _discards[0];
 
+    {
+        auto player_can_steal = check_if_player_can_steal(*last_discard);
+        if (player_can_steal) {
+            auto new_player = *_current_player_it;
+            if (new_player != current_player) {
+                _logger->info("%s steals Pung!!!", new_player->get_name().c_str());
+                current_player = new_player;
+            }
+        }
+    }
+
     if (current_player->wants_discard_tile(last_discard)) {
+        _logger->info("%s claims the discard: %s", current_player->get_name().c_str(),
+                                                     last_discard->get_full_name().c_str());
         deal_tile_to_player(current_player, last_discard);
         _discards.erase(_discards.begin());
     } else {
+        _logger->info("%s draws from the wall.", current_player->get_name().c_str());
         do {
             if (_set.get_num_tiles() == 0) {
                 return;
             }
             auto tileToDeal = _set.take_tile();
+            _logger->info("%s drawn", tileToDeal->get_full_name().c_str());
+
+            {
+                auto player_can_steal = check_if_player_can_steal(*tileToDeal);
+                if (player_can_steal) {
+                    auto new_player = *_current_player_it;
+                    if (new_player != current_player) {
+                        _logger->info("%s steals Pung!!!", new_player->get_name().c_str());
+                        current_player = new_player;
+                    }
+                }
+            }
+
             if (!tileToDeal) {
                 throw std::runtime_error("Tile is NULL!");
             }
             deal_tile_to_player(current_player, tileToDeal);
+            if (current_player->get_num_tiles_set_and_hand() < TILES_PER_PLAYER) {
+                throw std::runtime_error("Player has incomplete hand");
+            }
         } while (current_player->get_num_tiles_set_and_hand() !=
                  TILES_PER_PLAYER+1);
     }
@@ -225,7 +284,7 @@ int fake_main() {
     Mahjong my_mahjong = Mahjong();
     my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
     my_mahjong.pass_3_tiles_to_next_player();
-    my_mahjong.print_players_hands();
+    // my_mahjong.print_players_hands();
 
     bool game_is_over = false;
     do {

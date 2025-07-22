@@ -4,8 +4,6 @@
 void simulateRun() {
     printf("Welcome to mahjong\n\n");
 
-    Logger::instance().set_level(LogLevel::DEBUG);
-
     Mahjong my_mahjong = Mahjong();
     my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
     my_mahjong.pass_3_tiles_to_next_player();
@@ -35,7 +33,7 @@ int main() {
     Mahjong my_mahjong = Mahjong();
     my_mahjong.create_match({"Yo", "Player 2", "Player 3", "Player 4"});
     my_mahjong.pass_3_tiles_to_next_player();
-    my_mahjong.print_players_hands();
+    // my_mahjong.print_players_hands();
     auto * playerVecP = my_mahjong.get_players();
     auto playerVec = * playerVecP;
     auto * firstPlayer = playerVec[0];

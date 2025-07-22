@@ -92,8 +92,6 @@ bool Player::tile_is_partial_pung(MahjongTile& tile) {
 bool Player::tile_is_chow(MahjongTile& tile) {
     _logger->debug("%s::%s", CLASSNAME, __func__); 
 
-    printf("Checking if tile is chow\n");
-
     if (!(tile.get_group().has_a_number)) {
         return false;
     }
@@ -190,13 +188,12 @@ void Player::play_pungs() {
     for (const auto& tilePtr : hand_copy) {
         bool is_pung = tile_is_pung(*tilePtr);
         if (is_pung) {
+            _logger->info("Pung of %s!!!", tilePtr->get_name().c_str()); 
             TileId pung_id = tilePtr->get_id();
             bool tile_was_removed = false;
             do {
-                tile_was_removed =
-                    move_tile_between_hands(_hand, _sets, pung_id);
+                tile_was_removed = move_tile_between_hands(_hand, _sets, pung_id);
             } while (tile_was_removed);
-            printf("PUNG of %s!\n", tilePtr->get_full_name().c_str());
         }
     }
 }
@@ -204,17 +201,24 @@ void Player::play_pungs() {
 void Player::play_chows() {
     _logger->debug("%s::%s", CLASSNAME, __func__); 
 
-    const auto hand_copy = _hand;
+    bool finishedSearching = false;
 
-    for (const auto& tilePtr : hand_copy) {
-        if (tile_is_chow(*tilePtr)) {
-            TileId chow_id = tilePtr->get_id();
-            TileId chow_next_id = chow_id + 1;
-            TileId chow_next_next_id = chow_id + 2;
-            move_tile_between_hands(_hand, _sets, chow_id);
-            move_tile_between_hands(_hand, _sets, chow_next_id);
-            move_tile_between_hands(_hand, _sets, chow_next_next_id);
-            printf("CHOW of %s!\n", tilePtr->get_full_name().c_str());
+    while (!finishedSearching) {
+        const auto hand_copy = _hand;
+
+        for (const auto& tilePtr : hand_copy) {
+            if (tile_is_chow(*tilePtr)) {
+                _logger->info("Chow of %s!!!", tilePtr->get_name().c_str()); 
+                TileId chow_id = tilePtr->get_id();
+                TileId chow_next_id = chow_id + 1;
+                TileId chow_next_next_id = chow_id + 2;
+                move_tile_between_hands(_hand, _sets, chow_id);
+                move_tile_between_hands(_hand, _sets, chow_next_id);
+                move_tile_between_hands(_hand, _sets, chow_next_next_id);
+                finishedSearching = false;
+                break;
+            }
+            finishedSearching = true;
         }
     }
 }
@@ -286,7 +290,6 @@ void Bot::move_tiles_to_pass() {
 
     auto hand_copy = _hand;
 
-    printf("Will move_tiles_to_pass\n");
     for (const auto& tile : hand_copy) {
         bool is_pung = tile_is_pung(*tile);
         bool is_partial_pung = tile_is_partial_pung(*tile);
@@ -320,11 +323,12 @@ bool Player::move_tile_between_hands(MahjongHand& src_hand,
     for (const auto& tilePtr : src_hand_copy) {
         if (tilePtr->get_id() == tile_id) {
             dst_hand.push_back(tilePtr);
-            src_hand.erase(std::remove(src_hand.begin(), src_hand.end(), tilePtr), src_hand.end());
+            src_hand.erase(std::find(src_hand.begin(), src_hand.end(), tilePtr));
             tile_was_removed = true;
             break;
         }
     }
+    
     return tile_was_removed;
 }
 
@@ -343,7 +347,7 @@ void Player::remove_tile(TileId tile_id) {
 bool Player::has_won() {
     _logger->debug("%s::%s", CLASSNAME, __func__); 
 
-    if (_hand.size() == 1) {
+    if (_hand.size() <= 1) {
         return true;
     } else {
         return false;
