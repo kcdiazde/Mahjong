@@ -52,9 +52,8 @@ class GameEngine {
     sf::Clock _soundClock;
     int _currentSoundtrackNum = 2;
 
-    int _tileWidth = 0;
     int _tileHeight = 0;
-    int _tileScale = 0;
+    float _tileScale = 0;
     int _tileRealWidth = 0;
 
   public:
@@ -99,8 +98,8 @@ class GameEngine {
     void render_window() {
         _window.create(sf::VideoMode({_resolutionWidth, _resolutionHeight}), "Mahjong");
 
-        float middlePositionX = (_maxWidth - _resolutionWidth) / 2;
-        float middlePositionY = (_maxHeight - _resolutionHeight) / 2;
+        int middlePositionX = (_maxWidth - _resolutionWidth) / 2;
+        int middlePositionY = (_maxHeight - _resolutionHeight) / 2;
 
         _window.setPosition({middlePositionX, middlePositionY});
     }
@@ -116,8 +115,8 @@ class GameEngine {
         _text->setFillColor(sf::Color::Black);
         _text->setStyle(sf::Text::Bold | sf::Text::Underlined);
             
-        auto textPositionX = _resolutionWidth / 2 - (24 * 5);
-        auto textPositionY = _resolutionHeight / 4;
+        float textPositionX = _resolutionWidth / 2.0 - (24 * 5);
+        float textPositionY = _resolutionHeight / 4.0;
 
 
         _text->setPosition({textPositionX, textPositionY});
@@ -146,10 +145,13 @@ class GameEngine {
 
         _logger->info("spriteWidth = %d, spriteHeight = %d, ratio = %f", scale.x, scale.y, tile_ratio);
 
-        int tilesPerBoard = _resolutionWidth / 700.0;
-        _tileScale = tile_ratio * tilesPerBoard;
-        _tileWidth = tilesPerBoard;
-        _tileRealWidth = scale.x * _tileScale;
+        // int tilesPerBoard = _resolutionWidth / tile_ratio / 100.0;
+        int tilesPerBoard = 50;
+        float pixelsPerTile = _resolutionWidth / tilesPerBoard;
+        _tileScale = pixelsPerTile / scale.x;
+        _tileRealWidth = pixelsPerTile;
+
+        _logger->info("tilesPerBoard = %d", tilesPerBoard);
     }
 
     void check_soundtrack_finished() {
@@ -212,11 +214,11 @@ class GameEngine {
     void display_tiles(std::vector<std::string>& tilePaths, int y, int x) {
         _window.clear(sf::Color::Green);
 
-        int x_offset = x - (_tileRealWidth * 14);
-        int y_offset = y;
+        float x_offset = x - (_tileRealWidth * 14);
+        float y_offset = y;
 
-        _logger->info("x_offset = %d, y_offset = %d", x_offset, y_offset);
-        _logger->info("tileScale = %d", _tileScale);
+        _logger->info("x_offset = %f, y_offset = %f", x_offset, y_offset);
+        _logger->info("tileScale = %f", _tileScale);
         _logger->info("_tileRealWidth= %d", _tileRealWidth);
 
         for (const auto& tilePath : tilePaths) {
@@ -234,11 +236,9 @@ class GameEngine {
 
 
     void display_player_tiles(Player& player) {
-        std::cout << "Player is: " << player.get_name() << std::endl;
         MahjongHand * player_hand = player.get_hand();
         MahjongHand hand = *player_hand;
         
-        // int y_offset = (_resolutionWidth / 2) - (_tileWidth * 8 * _ratio);
         int x_offset = _resolutionWidth / 2;
         int y_offset = _resolutionHeight * 3 / 4;
 
@@ -248,8 +248,6 @@ class GameEngine {
         for (const auto& tilePtr : hand_copy) {
             auto tilePath = get_sprint_from_tile(*tilePtr);
 
-            std::cout << "Tile is: " << tilePtr->get_full_name() << std::endl;
-            std::cout << "Tile path is: " << tilePath << std::endl;
             tilePaths.push_back(tilePath);
         }
 
@@ -261,7 +259,7 @@ class GameEngine {
         sf::Texture tileTexture(tilePath);
         sf::Sprite tileSprite(tileTexture);
 
-        tileSprite.setScale({_tileWidth, _tileWidth * _ratio});
+        tileSprite.setScale({_tileScale, _tileScale});
         tileSprite.setPosition({y, x});
         _window.clear(sf::Color::Green);
         _window.draw(*_text);
