@@ -20,7 +20,7 @@ void SimulateRun() {
 int main() {
     Logger::Instance().SetLevel(LogLevel::kInfo);
 
-    bool simulate_game = true;
+    bool simulate_game = false;
 
     if (simulate_game) {
         SimulateRun();
@@ -38,6 +38,7 @@ int main() {
     auto players_vector = *players_ptr;
     auto *first_player = players_vector[0];
 
+    game_engine.DisplayPlayerTiles(*first_player);
     game_engine.DisplayPlayerTiles(*first_player);
 
     while (game_engine.GetWindow()->isOpen()) {

@@ -273,41 +273,6 @@ bool Player::WantsDiscardTile(MahjongTilePtr tile) {
     return is_partial_chow || is_partial_pung;
 }
 
-void Bot::PreprocessHand() {
-    logger_->Debug("%s::%s", kClassName, __func__);
-
-    MoveTilesToPass();
-}
-
-void Bot::MoveTilesToPass() {
-    logger_->Debug("%s::%s", kClassName, __func__);
-
-    // First search for useless tiles
-    auto hand_copy = hand_;
-
-    for (const auto &tile : hand_copy) {
-        bool is_pung = IsTilePung(*tile);
-        bool is_partial_pung = IsTilePartialPung(*tile);
-        bool is_chow = IsTileChow(*tile);
-        bool is_partial_chow = IsTilePung(*tile);
-
-        bool tile_is_useful =
-            (is_pung || is_partial_pung || is_chow || is_partial_chow);
-        if (!tile_is_useful) {
-            MoveTileBetweenHands(hand_, tiles_to_pass_, tile->GetId());
-        }
-
-        if (tiles_to_pass_.size() == kNumTilesToPass) {
-            break;
-        }
-    }
-
-    // If no useless tiles found then pass other tiles
-    while (tiles_to_pass_.size() < kNumTilesToPass) {
-        MoveTileBetweenHands(hand_, tiles_to_pass_, (hand_[0])->GetId());
-    }
-}
-
 bool Player::MoveTileBetweenHands(MahjongHand &src_hand, MahjongHand &dst_hand,
                                   TileId tile_id) {
     logger_->Debug("%s::%s", kClassName, __func__);
@@ -338,6 +303,26 @@ void Player::RemoveTile(TileId tile_id) {
             return;
         }
     }
+}
+
+void Player::PrintTilesToPass() {
+    logger_->Debug("%s::%s", kClassName, __func__);
+
+    printf("******%s's Tiles to pass******\n", name_.c_str());
+    for (auto tile : tiles_to_pass_) {
+        tile->Print();
+    }
+    printf("\n");
+}
+
+void Player::PrintTilesReceived() {
+    logger_->Debug("%s::%s", kClassName, __func__);
+
+    printf("******%s's Tiles received******\n", name_.c_str());
+    for (auto tile : tiles_received_) {
+        tile->Print();
+    }
+    printf("\n");
 }
 
 bool Player::HasWon() {
@@ -375,22 +360,38 @@ void Bot::PrintChows() {
     }
 }
 
-void Player::PrintTilesToPass() {
+void Bot::PreprocessHand() {
     logger_->Debug("%s::%s", kClassName, __func__);
 
-    printf("******%s's Tiles to pass******\n", name_.c_str());
-    for (auto tile : tiles_to_pass_) {
-        tile->Print();
-    }
-    printf("\n");
+    MoveTilesToPass();
 }
 
-void Player::PrintTilesReceived() {
+void Bot::MoveTilesToPass() {
     logger_->Debug("%s::%s", kClassName, __func__);
 
-    printf("******%s's Tiles received******\n", name_.c_str());
-    for (auto tile : tiles_received_) {
-        tile->Print();
+    // First search for useless tiles
+    auto hand_copy = hand_;
+
+    for (const auto &tile : hand_copy) {
+        bool is_pung = IsTilePung(*tile);
+        bool is_partial_pung = IsTilePartialPung(*tile);
+        bool is_chow = IsTileChow(*tile);
+        bool is_partial_chow = IsTilePung(*tile);
+
+        bool tile_is_useful =
+            (is_pung || is_partial_pung || is_chow || is_partial_chow);
+        if (!tile_is_useful) {
+            MoveTileBetweenHands(hand_, tiles_to_pass_, tile->GetId());
+        }
+
+        if (tiles_to_pass_.size() == kNumTilesToPass) {
+            break;
+        }
     }
-    printf("\n");
+
+    // If no useless tiles found then pass other tiles
+    while (tiles_to_pass_.size() < kNumTilesToPass) {
+        MoveTileBetweenHands(hand_, tiles_to_pass_, (hand_[0])->GetId());
+    }
 }
+
