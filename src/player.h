@@ -1,92 +1,88 @@
-
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include <iostream>
+#include <list>
+#include <string>
+
+#include "logger.h"
 #include "mahjong_common.h"
 #include "tiles.h"
-#include "logger.h"
-#include <string>
-#include <list>
-#include <iostream>
 
-typedef std::vector<MahjongTilePtr> MahjongHand;
-typedef std::vector<MahjongTilePtr>::iterator HandIterator;
+using MahjongHand = std::vector<MahjongTilePtr>;
+using HandIterator = std::vector<MahjongTilePtr>::iterator;
 
 class Player {
+ protected:
+  std::string name_;
+  MahjongHand sets_;
+  MahjongHand hand_;
+  MahjongHand flowers_;
+  MahjongHand tiles_to_pass_;
+  uint16_t points_;
+  MahjongTilePtr last_discard_;
+  Logger* logger_;
 
-  protected:
-    std::string _name;
-    MahjongHand _sets;
-    MahjongHand _hand;
-    MahjongHand _flowers;
-    MahjongHand _tiles_to_pass;
-    uint16_t _points;
-    MahjongTilePtr _last_discard;
-    Logger* _logger;
+  static constexpr auto kClassName = "Player";
 
-    static constexpr auto CLASSNAME = "Player";
+ public:
+  MahjongHand tiles_received_;
+  explicit Player(){};
+  explicit Player(std::string name)
+      : name_(name), points_(0), last_discard_(nullptr) {
+    logger_ = &Logger::Instance();
+  };
+  virtual ~Player() = default;
 
-  public:
-    MahjongHand _tiles_received;
-    explicit Player(){};
-    explicit Player(std::string name) : _name(name), _points(0), _last_discard(nullptr){
-        _logger = &Logger::instance(); 
-    };
-    virtual ~Player() = default;
-
-    void print_hand();
-    void print_sets();
-    void print_tiles_to_pass();
-    void print_tiles_received();
-    void deal_tile(MahjongTilePtr);
-    uint8_t get_num_total_tiles() { return _hand.size() + _flowers.size(); }
-    uint8_t get_num_tiles_in_hand() { return _hand.size(); }
-    uint8_t get_num_tiles_set_and_hand() { return _hand.size() + _sets.size(); }
-    uint8_t get_num_flowers() { return _flowers.size(); }
-    std::string get_name() { return _name; }
-    MahjongHand * get_hand() {return &_hand;}
-    void sort_hand();
-    bool found_tile_with_id_and_group(TileId tile_id, std::string group);
-    bool move_tile_between_hands(MahjongHand& src_hand, MahjongHand& dst_hand, TileId tile_id);
-    void remove_tile(TileId tile_id);
-    bool tile_is_pung(MahjongTile& tile);
-    bool tile_is_partial_pung(MahjongTile& tile);
-    bool tile_is_chow(MahjongTile& tile);
-    bool tile_is_partial_chow(MahjongTile& tile);
-    void pass_3_tiles(Player * receiver);
-    void move_received_tiles_to_hand();
-    void play();
-    void play_pungs();
-    void play_chows();
-    MahjongTilePtr get_tile_to_discard();
-    bool wants_discard_tile(MahjongTilePtr tile);
-    bool has_won();
-
+  void PrintHand();
+  void PrintSets();
+  void PrintTilesToPass();
+  void PrintTilesReceived();
+  void DealTile(MahjongTilePtr);
+  uint8_t GetNumTotalTiles() { return hand_.size() + flowers_.size(); }
+  uint8_t GetNumTilesInHand() { return hand_.size(); }
+  uint8_t GetNumTilesSetAndHand() { return hand_.size() + sets_.size(); }
+  uint8_t GetNumFlowers() { return flowers_.size(); }
+  std::string GetName() { return name_; }
+  MahjongHand* GetHand() { return &hand_; }
+  void SortHand();
+  bool FindTileWithIdAndGroup(TileId tile_id, std::string group);
+  bool MoveTileBetweenHands(MahjongHand& src_hand, MahjongHand& dst_hand,
+                            TileId tile_id);
+  void RemoveTile(TileId tile_id);
+  bool IsTilePung(MahjongTile& tile);
+  bool IsTilePartialPung(MahjongTile& tile);
+  bool IsTileChow(MahjongTile& tile);
+  bool IsTilePartialChow(MahjongTile& tile);
+  void Pass3Tiles(Player* receiver);
+  void MoveReceivedTilesToHand();
+  void Play();
+  void PlayPungs();
+  void PlayChows();
+  MahjongTilePtr GetTileToDiscard();
+  bool WantsDiscardTile(MahjongTilePtr tile);
+  bool HasWon();
 };
 
 class User : public Player {
-  protected:
-  public:
-    explicit User(){};
-    explicit User(std::string name) : Player(name){};
-    ~User() = default;
+ public:
+  explicit User(){};
+  explicit User(std::string name) : Player(name){};
+  ~User() = default;
 };
 
 // TODO: Keep count of tiles that have come out
 class Bot : public Player {
-  protected:
+ public:
+  explicit Bot(){};
+  explicit Bot(std::string name) : Player(name){};
+  ~Bot() = default;
 
-  public:
-    explicit Bot(){};
-    explicit Bot(std::string name) : Player(name){};
-    ~Bot() = default;
-
-    // MahjongHand get_tiles_to_pass();
-    void preprocess_hand();
-    void move_tiles_to_pass();
-    void print_pungs();
-    void print_chows();
-
+  // MahjongHand GetTilesToPass();
+  void PreprocessHand();
+  void MoveTilesToPass();
+  void PrintPungs();
+  void PrintChows();
 };
 
 #endif

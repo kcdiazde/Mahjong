@@ -1,270 +1,258 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include "tiles.h"
-#include "player.h"
-#include "logger.h"
+#include <SFML/Graphics.hpp>
 #include <iostream>
 
+#include "logger.h"
+#include "player.h"
+#include "tiles.h"
+
 class GameEngine {
+ public:
+  explicit GameEngine()
+      : kToolsPath_(MAHJONG_TOOLS),
+        kSoundtracks_({kToolsPath_ + "/soundtracks/soundtrack_1.mp3",
+                       kToolsPath_ + "/soundtracks/soundtrack_2.mp3",
+                       kToolsPath_ + "/soundtracks/soundtrack_3.mp3"}) {
+    logger_ = &Logger::Instance();
+    GetAspectRatio();
+    SetGameResolution();
+    RenderWindow();
+    ConfigureText();
+    UpdateSoundtrack();
+    PrintRedDragon();
+    GetTileParams();
+  }
 
-    const std::string TOOLS_PATH = MAHJONG_TOOLS;
+  sf::RenderWindow* GetWindow() { return &window_; }
 
-    std::string TOOLS_PATH_1 = TOOLS_PATH;
-    const std::string SOUND_1 = TOOLS_PATH_1.append("/soundtracks/soundtrack_1.mp3");
-
-    std::string TOOLS_PATH_2 = TOOLS_PATH;
-    const std::string SOUND_2 = TOOLS_PATH_2.append("/soundtracks/soundtrack_2.mp3");
-
-    std::string TOOLS_PATH_3 = TOOLS_PATH;
-    const std::string SOUND_3 = TOOLS_PATH_3.append("/soundtracks/soundtrack_3.mp3");
-
-    const std::vector<int> SOUNDTRACK_DURATION_SECS = {240, 220, 120};
-    const std::vector<std::string> SOUNDTRACKS = {SOUND_1, SOUND_2, SOUND_3};
-
-  public:
-    explicit GameEngine () {
-        _logger = &Logger::instance(); 
-        get_aspect_ratio();
-        set_game_resolution();
-        render_window();
-        configure_text();
-        update_soundtrack();
-        print_red_dragon();
-        get_tile_params();
-    }
-
-  private:
-    Logger* _logger;
-    std::vector<sf::VideoMode> _videoModes;
-    uint16_t _maxHeight = 0;
-    uint16_t _maxWidth = 0;
-    uint16_t _resolutionWidth = 0;
-    uint16_t _resolutionHeight = 0;
-    float _ratio = 0;
-    sf::RenderWindow _window;
-    sf::Font * _font = nullptr;
-    sf::Text * _text = nullptr;
-    sf::Texture * _redDragonTexture = nullptr;
-    sf::Sprite * _redDragonSprite = nullptr;
-    sf::Music * _music = nullptr;
-    sf::Clock _soundClock;
-    int _currentSoundtrackNum = 2;
-
-    int _tileHeight = 0;
-    float _tileScale = 0;
-    int _tileRealWidth = 0;
-
-  public:
-    sf::RenderWindow * getWindow() {
-        return &_window;
-    }
-
-    void handle_events() {
-        while (const std::optional event = _window.pollEvent())
-        {
-            if (event->is<sf::Event::Closed>()) {
-                _window.close();
-            } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
-            {
-                if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
-                    _window.close();
-                }
-            }
+  void HandleEvents() {
+    while (const std::optional event = window_.pollEvent()) {
+      if (event->is<sf::Event::Closed>()) {
+        window_.close();
+      } else if (const auto* key_pressed =
+                     event->getIf<sf::Event::KeyPressed>()) {
+        if (key_pressed->scancode == sf::Keyboard::Scancode::Escape) {
+          window_.close();
         }
+      }
+    }
+  }
+
+  void GetAspectRatio() {
+    video_modes_ = sf::VideoMode::getFullscreenModes();
+    max_width_ = video_modes_[0].size.x;
+    max_height_ = video_modes_[0].size.y;
+  }
+
+  void SetGameResolution() {
+    // Use second resolution as default
+    const auto kSecondResolution = 1;
+    const auto kFirstResolution = 0;
+
+    const auto default_res =
+        (video_modes_.size() >= 2) ? kSecondResolution : kFirstResolution;
+
+    resolution_width_ = video_modes_[default_res].size.x;
+    resolution_height_ = video_modes_[default_res].size.y;
+    ratio_ = static_cast<double>(resolution_width_) /
+             static_cast<double>(resolution_height_);
+    logger_->Info("Resolution set to W = %d, H = %d, ratio = %f",
+                  resolution_width_, resolution_height_, ratio_);
+  }
+
+  void RenderWindow() {
+    window_.create(sf::VideoMode({resolution_width_, resolution_height_}),
+                   "Mahjong");
+
+    int middle_position_x = (max_width_ - resolution_width_) / 2;
+    int middle_position_y = (max_height_ - resolution_height_) / 2;
+
+    window_.setPosition({middle_position_x, middle_position_y});
+  }
+
+  void ConfigureText() {
+    std::string font_path = kToolsPath_;
+    font_path.append("/fonts/arial.ttf");
+    font_ = new sf::Font(font_path);
+    text_ = new sf::Text(*font_);
+    text_->setString("Welcome to Mahjong");
+    text_->setCharacterSize(24);
+    text_->setFillColor(sf::Color::Black);
+    text_->setStyle(sf::Text::Bold | sf::Text::Underlined);
+
+    float text_position_x = resolution_width_ / 2.0 - (24 * 5);
+    float text_position_y = resolution_height_ / 4.0;
+
+    text_->setPosition({text_position_x, text_position_y});
+  }
+
+  void PrintRedDragon() {
+    std::string red_dragon_path = kToolsPath_;
+    red_dragon_path.append("/sprites/Red.png");
+    red_dragon_texture_ = new sf::Texture(red_dragon_path);
+    red_dragon_sprite_ = new sf::Sprite(*red_dragon_texture_);
+  }
+
+  void GetTileParams() {
+    std::string tile_path = kToolsPath_;
+    tile_path.append("/sprites/Red.png");
+    auto sample_texture = sf::Texture(tile_path);
+
+    auto scale = sample_texture.getSize();
+    float tile_ratio =
+        static_cast<float>(scale.y) / static_cast<float>(scale.x);
+
+    logger_->Info("spriteWidth = %d, spriteHeight = %d, ratio = %f", scale.x,
+                  scale.y, tile_ratio);
+
+    int tiles_per_board = 50;
+    float pixels_per_tile = resolution_width_ / tiles_per_board;
+    tile_scale_ = pixels_per_tile / scale.x;
+    tile_real_width_ = pixels_per_tile;
+
+    logger_->Info("tilesPerBoard = %d", tiles_per_board);
+  }
+
+  void CheckSoundtrackFinished() {
+    auto elapsed_time = sound_clock_.getElapsedTime().asSeconds();
+    if (elapsed_time >= kSoundtrackDurationSecs_[current_soundtrack_num_]) {
+      UpdateSoundtrack();
+    }
+  }
+
+  void UpdateSoundtrack() {
+    current_soundtrack_num_ = rand() % 3;
+    delete music_;
+    music_ = new sf::Music(kSoundtracks_[current_soundtrack_num_]);
+    PlaySoundtrack();
+  }
+
+  void PlaySoundtrack() {
+    sound_clock_.restart();
+    music_->play();
+  }
+
+  void DisplayGame() {
+    window_.clear(sf::Color::Green);
+    window_.draw(*text_);
+    window_.draw(*red_dragon_sprite_);
+    window_.display();
+  }
+
+  std::string GetSpritePathFromTile(MahjongTile& tile) {
+    auto tile_group_name = tile.GetGroup().name;
+    std::string tile_name = kToolsPath_;
+    tile_name.append("/sprites/");
+
+    if (tile_group_name == "Flower") {
+      // TODO: Get propper sprite for this
+      tile_name.append("White.png");
+    } else if (tile_group_name == "Dragon") {
+      tile_name.append(tile.GetName()).append(".png");
+    } else if (tile_group_name == "Wind") {
+      tile_name.append(tile.GetName()).append(".png");
+    } else if (tile_group_name == "Symbol") {
+      auto* tile_numerical = dynamic_cast<MahjongTileNumerical*>(&tile);
+      auto tile_num = tile_numerical->GetValue();
+      tile_name.append("Characters")
+          .append(std::to_string(tile_num))
+          .append(".png");
+    } else if (tile_group_name == "Bamboo") {
+      auto* tile_numerical = dynamic_cast<MahjongTileNumerical*>(&tile);
+      auto tile_num = tile_numerical->GetValue();
+      tile_name.append("Bamboo")
+          .append(std::to_string(tile_num))
+          .append(".png");
+    } else if (tile_group_name == "Dot") {
+      auto* tile_numerical = dynamic_cast<MahjongTileNumerical*>(&tile);
+      auto tile_num = tile_numerical->GetValue();
+      tile_name.append("Circles")
+          .append(std::to_string(tile_num))
+          .append(".png");
+    } else {
+      throw std::runtime_error("Oh boy");
     }
 
-    void get_aspect_ratio() {
-        // List of all video modes
-        _videoModes = sf::VideoMode::getFullscreenModes();
-        _maxWidth = _videoModes[0].size.x;
-        _maxHeight = _videoModes[0].size.y;
+    return tile_name;
+  }
+
+  void DisplayTiles(std::vector<std::string>& tile_paths, int y, int x) {
+    window_.clear(sf::Color::Green);
+
+    float x_offset = x - (tile_real_width_ * 14);
+    float y_offset = y;
+
+    logger_->Info("x_offset = %f, y_offset = %f", x_offset, y_offset);
+    logger_->Info("tileScale = %f", tile_scale_);
+    logger_->Info("_tileRealWidth= %d", tile_real_width_);
+
+    for (const auto& tile_path : tile_paths) {
+      sf::Texture tile_texture(tile_path);
+      sf::Sprite tile_sprite(tile_texture);
+      tile_sprite.setScale({tile_scale_, tile_scale_});
+      tile_sprite.setPosition({x_offset, y_offset});
+      window_.draw(tile_sprite);
+      x_offset += tile_real_width_ * 2;
     }
 
-    void set_game_resolution() {
-        // Use second resolution as default
-        const auto kSecondResolution = 1;
-        const auto kFirstResolution = 0;
+    window_.draw(*text_);
+    window_.display();
+  }
 
-        const auto defaultRes = (_videoModes.size() >= 2) ? kSecondResolution : kFirstResolution;
+  void DisplayPlayerTiles(Player& player) {
+    MahjongHand* player_hand = player.GetHand();
+    MahjongHand hand = *player_hand;
 
-        _resolutionWidth = _videoModes[defaultRes].size.x;
-        _resolutionHeight = _videoModes[defaultRes].size.y;
-        _ratio = static_cast<double>(_resolutionWidth) / static_cast<double>(_resolutionHeight);
-        _logger->info("Resolution set to W = %d, H = %d, ratio = %f", _resolutionWidth, _resolutionHeight, _ratio);
+    int x_offset = resolution_width_ / 2;
+    int y_offset = resolution_height_ * 3 / 4;
+
+    auto hand_copy = hand;
+
+    std::vector<std::string> tile_paths;
+    for (const auto& tile_ptr : hand_copy) {
+      auto tile_path = GetSpritePathFromTile(*tile_ptr);
+      tile_paths.push_back(tile_path);
     }
 
-    void render_window() {
-        _window.create(sf::VideoMode({_resolutionWidth, _resolutionHeight}), "Mahjong");
+    DisplayTiles(tile_paths, y_offset, x_offset);
+  }
 
-        int middlePositionX = (_maxWidth - _resolutionWidth) / 2;
-        int middlePositionY = (_maxHeight - _resolutionHeight) / 2;
+  void DisplayTile(std::string tile_path, float y, float x) {
+    sf::Texture tile_texture(tile_path);
+    sf::Sprite tile_sprite(tile_texture);
 
-        _window.setPosition({middlePositionX, middlePositionY});
-    }
+    tile_sprite.setScale({tile_scale_, tile_scale_});
+    tile_sprite.setPosition({y, x});
+    window_.clear(sf::Color::Green);
+    window_.draw(*text_);
+    window_.draw(tile_sprite);
+    window_.display();
+  }
 
-    void configure_text() {
-        // TODO: static constexpr
-        std::string fontPath = MAHJONG_TOOLS;
-        fontPath.append("/fonts/arial.ttf");
-        _font = new sf::Font(fontPath);
-        _text = new sf::Text(*_font);
-        _text->setString("Welcome to Mahjong");
-        _text->setCharacterSize(24);
-        _text->setFillColor(sf::Color::Black);
-        _text->setStyle(sf::Text::Bold | sf::Text::Underlined);
-            
-        float textPositionX = _resolutionWidth / 2.0 - (24 * 5);
-        float textPositionY = _resolutionHeight / 4.0;
+ private:
+  const std::string kToolsPath_;
+  const std::vector<int> kSoundtrackDurationSecs_ = {240, 220, 120};
+  const std::vector<std::string> kSoundtracks_;
 
+  Logger* logger_;
+  std::vector<sf::VideoMode> video_modes_;
+  uint16_t max_height_ = 0;
+  uint16_t max_width_ = 0;
+  uint16_t resolution_width_ = 0;
+  uint16_t resolution_height_ = 0;
+  float ratio_ = 0;
+  sf::RenderWindow window_;
+  sf::Font* font_ = nullptr;
+  sf::Text* text_ = nullptr;
+  sf::Texture* red_dragon_texture_ = nullptr;
+  sf::Sprite* red_dragon_sprite_ = nullptr;
+  sf::Music* music_ = nullptr;
+  sf::Clock sound_clock_;
+  int current_soundtrack_num_ = 2;
 
-        _text->setPosition({textPositionX, textPositionY});
-    }
-
-    void print_red_dragon() {
-        std::string redDragonPath = MAHJONG_TOOLS;
-        redDragonPath.append("/sprites/Red.png");
-        _redDragonTexture = new sf::Texture(redDragonPath);
-        _redDragonSprite = new sf::Sprite(*_redDragonTexture);
-
-        // // auto [width, height] = _redDragonTexture->getSize();
-        // auto [spriteWidth, spriteHeight] = _redDragonSprite->getScale();
-        // auto divW = _resolutionWidth / 500 / spriteWidth;
-        // _redDragonSprite->setScale({divW, divW * _ratio});
-    }
-
-    void get_tile_params() {
-        std::string tilePath = MAHJONG_TOOLS;
-        tilePath.append("/sprites/Red.png");
-        auto sampleTexture = sf::Texture(tilePath);
-        auto sampleSprite = sf::Sprite(sampleTexture);
-
-        auto scale = sampleTexture.getSize();
-        float tile_ratio = static_cast<float>(scale.y) / static_cast<float>(scale.x);
-
-        _logger->info("spriteWidth = %d, spriteHeight = %d, ratio = %f", scale.x, scale.y, tile_ratio);
-
-        // int tilesPerBoard = _resolutionWidth / tile_ratio / 100.0;
-        int tilesPerBoard = 50;
-        float pixelsPerTile = _resolutionWidth / tilesPerBoard;
-        _tileScale = pixelsPerTile / scale.x;
-        _tileRealWidth = pixelsPerTile;
-
-        _logger->info("tilesPerBoard = %d", tilesPerBoard);
-    }
-
-    void check_soundtrack_finished() {
-        auto elapsedTime = _soundClock.getElapsedTime().asSeconds();
-        if (elapsedTime >= SOUNDTRACK_DURATION_SECS[_currentSoundtrackNum]) {
-            update_soundtrack();        
-        }
-    }
-
-    void update_soundtrack() {
-        _currentSoundtrackNum = rand() % 3;
-        delete _music;
-        _music = new sf::Music(SOUNDTRACKS[_currentSoundtrackNum]);
-        play_soundtrack();
-    }
-
-    void play_soundtrack() {
-        _soundClock.restart();
-        _music->play();
-    }
-
-    void display_game() {
-        _window.clear(sf::Color::Green);
-        _window.draw(*_text);
-        _window.draw(*_redDragonSprite);
-        _window.display();
-    }
-
-    std::string get_sprint_from_tile(MahjongTile& tile) {
-        auto tileGroupName = tile.get_group().name;
-        std::string tile_name = MAHJONG_TOOLS;
-        tile_name.append("/sprites/");
-
-        if (tileGroupName == "Flower") {
-            // TODO: Get propper sprite for this
-            tile_name.append("White.png");
-        } else if (tileGroupName == "Dragon") {
-            tile_name.append(tile.get_name()).append(".png");
-        } else if (tileGroupName == "Wind") {
-            tile_name.append(tile.get_name()).append(".png");
-        } else if (tileGroupName == "Symbol") {
-            auto * tileNumerical = dynamic_cast<MahjongTileNumerical*>(&tile);
-            auto tileNum = tileNumerical->get_value();
-            tile_name.append("Characters").append(std::to_string(tileNum)).append(".png");
-        } else if (tileGroupName == "Bamboo") {
-            auto * tileNumerical = dynamic_cast<MahjongTileNumerical*>(&tile);
-            auto tileNum = tileNumerical->get_value();
-            tile_name.append("Bamboo").append(std::to_string(tileNum)).append(".png");
-        } else if (tileGroupName == "Dot") {
-            auto * tileNumerical = dynamic_cast<MahjongTileNumerical*>(&tile);
-            auto tileNum = tileNumerical->get_value();
-            tile_name.append("Circles").append(std::to_string(tileNum)).append(".png");
-        } else {
-            throw std::runtime_error("Oh boy");
-        }
-
-        return tile_name;
-    }
-
-    void display_tiles(std::vector<std::string>& tilePaths, int y, int x) {
-        _window.clear(sf::Color::Green);
-
-        float x_offset = x - (_tileRealWidth * 14);
-        float y_offset = y;
-
-        _logger->info("x_offset = %f, y_offset = %f", x_offset, y_offset);
-        _logger->info("tileScale = %f", _tileScale);
-        _logger->info("_tileRealWidth= %d", _tileRealWidth);
-
-        for (const auto& tilePath : tilePaths) {
-            sf::Texture tileTexture(tilePath);
-            sf::Sprite tileSprite(tileTexture);
-            tileSprite.setScale({_tileScale, _tileScale});
-            tileSprite.setPosition({x_offset, y_offset});
-            _window.draw(tileSprite);
-            x_offset += _tileRealWidth * 2;
-        }
-
-        _window.draw(*_text);
-        _window.display();
-    }
-
-
-    void display_player_tiles(Player& player) {
-        MahjongHand * player_hand = player.get_hand();
-        MahjongHand hand = *player_hand;
-        
-        int x_offset = _resolutionWidth / 2;
-        int y_offset = _resolutionHeight * 3 / 4;
-
-        auto hand_copy = hand;
-
-        std::vector<std::string> tilePaths;
-        for (const auto& tilePtr : hand_copy) {
-            auto tilePath = get_sprint_from_tile(*tilePtr);
-
-            tilePaths.push_back(tilePath);
-        }
-
-        display_tiles(tilePaths, y_offset, x_offset);
-
-    }
-
-    void display_tile(std::string tilePath, float y, float x) {
-        sf::Texture tileTexture(tilePath);
-        sf::Sprite tileSprite(tileTexture);
-
-        tileSprite.setScale({_tileScale, _tileScale});
-        tileSprite.setPosition({y, x});
-        _window.clear(sf::Color::Green);
-        _window.draw(*_text);
-        _window.draw(tileSprite);
-        _window.display();
-    }
-
+  int tile_height_ = 0;
+  float tile_scale_ = 0;
+  int tile_real_width_ = 0;
 };

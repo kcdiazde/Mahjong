@@ -1,80 +1,76 @@
 #include "player.h"
 #include "tiles.h"
 #include <cassert>
-
 #include <memory>
 
 // Helper to create a numbered tile for testing
-MahjongTilePtr create_tile(TileGroup group, int number) {
-    return std::make_shared<MahjongTileNumerical>(TileGroup(group), number);
+MahjongTilePtr CreateTile(const TileGroup& group, int number) {
+    return std::make_shared<MahjongTileNumerical>(group, number);
 }
 
 // Helper to create a named tile (Wind/Dragon) for testing
-MahjongTilePtr create_tile(TileGroup group, const std::string& name) {
-    return std::make_shared<MahjongTile>(TileGroup(group), name);
+MahjongTilePtr CreateTile(const TileGroup& group, const std::string& name) {
+    return std::make_shared<MahjongTile>(group, name);
 }
 
-
-void test_deal_regular_tile() {
+void TestDealRegularTile() {
     Player player("Test");
-    assert(player.get_num_total_tiles() == 0);
+    assert(player.GetNumTotalTiles() == 0);
 
-    player.deal_tile(create_tile(BAMBOO, 5));
-    assert(player.get_num_tiles_set_and_hand() == 1);
-    assert(player.get_num_flowers() == 0);
+    player.DealTile(CreateTile(kBamboo, 5));
+    assert(player.GetNumTilesSetAndHand() == 1);
+    assert(player.GetNumFlowers() == 0);
 
-    std::cout << "test_deal_flower_tile: PASSED" << std::endl;
+    std::cout << "TestDealRegularTile: PASSED" << std::endl;
 }
 
-void test_deal_flower_tile() {
+void TestDealFlowerTile() {
     Player player("Test");
-    assert(player.get_num_total_tiles() == 0);
+    assert(player.GetNumTotalTiles() == 0);
 
-    player.deal_tile(create_tile(FLOWER, "Spring"));
-    assert(player.get_num_tiles_set_and_hand() == 0);
-    assert(player.get_num_flowers() == 1);
+    player.DealTile(CreateTile(kFlower, "Spring"));
+    assert(player.GetNumTilesSetAndHand() == 0);
+    assert(player.GetNumFlowers() == 1);
 
-    std::cout << "test_deal_flower_tile: PASSED" << std::endl;
+    std::cout << "TestDealFlowerTile: PASSED" << std::endl;
 }
 
-void test_hand_sorting() {
+void TestHandSorting() {
     Player player("Test");
     MahjongSet set;
-    set.shuffle();
+    set.Shuffle();
 
-    constexpr auto TILES_TO_TEST = 14;
+    constexpr auto kTilesToTest = 14;
 
     // Deal tiles in an unsorted order
-    for (int test_num = 0; test_num < TILES_TO_TEST;) {
-        auto newTile = set.take_tile();
-        // Flowers don't increment hand size
-        if (newTile->is_flower()) {
-            break;
+    for (int tiles_dealt = 0; tiles_dealt < kTilesToTest;) {
+        auto new_tile = set.TakeTile();
+        // Flowers don't increment hand size, so don't count them
+        if (new_tile->IsFlower()) {
+            player.DealTile(new_tile);
+            continue; 
         }
-        player.deal_tile(newTile);
+        player.DealTile(new_tile);
+        tiles_dealt++;
 
-        const auto hand = *(player.get_hand());
-        std::cout << "Hand size: " << hand.size() << std::endl;
-        assert(hand.size() == ++test_num);
+        const auto hand = *(player.GetHand());
+        assert(hand.size() == tiles_dealt);
 
-        auto prev_tile_id = 0;
+        TileId prev_tile_id = 0;
         for (const auto& tile : hand) {
-            const auto id = tile->get_id();
-            std::cout << "Curr id: " << static_cast<int>(id) << " prev id: " << prev_tile_id << std::endl;
+            const auto id = tile->GetId();
             assert(id >= prev_tile_id);
             prev_tile_id = id;
         }
     }
 
-    std::cout << "test_hand_sorting: PASSED" << std::endl;
+    std::cout << "TestHandSorting: PASSED" << std::endl;
 }
 
 int main() {
-
-    test_deal_regular_tile();
-    test_deal_flower_tile();
-    test_hand_sorting();
+    TestDealRegularTile();
+    TestDealFlowerTile();
+    TestHandSorting();
 
   return 0;
 }
-

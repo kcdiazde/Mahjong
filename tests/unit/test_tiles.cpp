@@ -1,38 +1,34 @@
 #include "tiles.h"
-#include "player.h"
 #include <cassert>
 
-int test_set_creation() {
+int TestSetCreation() {
     MahjongSet set;
-    assert(set.get_num_tiles() == 144);
+    assert(set.GetNumTiles() == 144);
     
     return 0;
 }
 
-int test_shuffle_tiles() {
+int TestShuffleTiles() {
     MahjongSet set;
     
-    const auto initial_order = set.get_tiles();
+    const auto initial_order = set.GetTiles();
 
-    set.shuffle();
+    set.Shuffle();
 
-    const auto shuffled_order = set.get_tiles();
+    const auto shuffled_order = set.GetTiles();
 
     assert(initial_order.size() == shuffled_order.size());
-    assert(initial_order != shuffled_order);
+    assert(initial_order != shuffled_order); // This has a small chance to fail if shuffle results in same order
 
     return 0;
 }
-
-
 
 int main() {
     int results = 0;
 
     // Test tiles
-    results += test_set_creation();
-    results += test_shuffle_tiles();
+    results += TestSetCreation();
+    results += TestShuffleTiles();
 
   return results;
 }
-

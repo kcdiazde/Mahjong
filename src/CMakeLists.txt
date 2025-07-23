@@ -8,7 +8,6 @@ FetchContent_Declare(SFML
 FetchContent_MakeAvailable(SFML)
 
 set(SOURCES
-    bot.cc
     mahjong.cc
     player.cc
     tiles.cc
