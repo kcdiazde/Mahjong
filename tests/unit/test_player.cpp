@@ -4,12 +4,12 @@
 #include <memory>
 
 // Helper to create a numbered tile for testing
-MahjongTilePtr CreateTile(const TileGroup& group, int number) {
+MahjongTilePtr CreateTile(const TileGroup &group, int number) {
     return std::make_shared<MahjongTileNumerical>(group, number);
 }
 
 // Helper to create a named tile (Wind/Dragon) for testing
-MahjongTilePtr CreateTile(const TileGroup& group, const std::string& name) {
+MahjongTilePtr CreateTile(const TileGroup &group, const std::string &name) {
     return std::make_shared<MahjongTile>(group, name);
 }
 
@@ -48,7 +48,7 @@ void TestHandSorting() {
         // Flowers don't increment hand size, so don't count them
         if (new_tile->IsFlower()) {
             player.DealTile(new_tile);
-            continue; 
+            continue;
         }
         player.DealTile(new_tile);
         tiles_dealt++;
@@ -57,7 +57,7 @@ void TestHandSorting() {
         assert(hand.size() == tiles_dealt);
 
         TileId prev_tile_id = 0;
-        for (const auto& tile : hand) {
+        for (const auto &tile : hand) {
             const auto id = tile->GetId();
             assert(id >= prev_tile_id);
             prev_tile_id = id;
@@ -72,5 +72,5 @@ int main() {
     TestDealFlowerTile();
     TestHandSorting();
 
-  return 0;
+    return 0;
 }

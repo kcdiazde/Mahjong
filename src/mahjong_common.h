@@ -13,10 +13,10 @@ constexpr int kNumTilesToPass = 3;
 using TileId = uint8_t;
 
 struct TileGroup {
-  std::string name;
-  bool has_a_number;
-  uint8_t num_tiles_in_set;
-  uint8_t priority;
+    std::string name;
+    bool has_a_number;
+    uint8_t num_tiles_in_set;
+    uint8_t priority;
 };
 
 const TileGroup kFlower = TileGroup{.name = "Flower",
@@ -39,9 +39,7 @@ const TileGroup kBamboo = TileGroup{.name = "Bamboo",
                                     .has_a_number = true,
                                     .num_tiles_in_set = 36,
                                     .priority = 4};
-const TileGroup kDot = TileGroup{.name = "Dot",
-                                 .has_a_number = true,
-                                 .num_tiles_in_set = 36,
-                                 .priority = 5};
+const TileGroup kDot = TileGroup{
+    .name = "Dot", .has_a_number = true, .num_tiles_in_set = 36, .priority = 5};
 
 #endif
