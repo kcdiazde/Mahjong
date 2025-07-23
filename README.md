@@ -17,4 +17,4 @@ cd build
 
 # To ctest
 ctest -V
-ctest unit_tests -V
+ctest -R <test name> -V

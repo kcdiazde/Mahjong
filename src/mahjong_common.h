@@ -1,5 +1,4 @@
-#ifndef MAHJONG_COMMON_H
-#define MAHJONG_COMMON_H
+#pragma once
 
 #include <string>
 
@@ -39,7 +38,7 @@ const TileGroup kBamboo = TileGroup{.name = "Bamboo",
                                     .has_a_number = true,
                                     .num_tiles_in_set = 36,
                                     .priority = 4};
-const TileGroup kDot = TileGroup{
-    .name = "Dot", .has_a_number = true, .num_tiles_in_set = 36, .priority = 5};
-
-#endif
+const TileGroup kDot = TileGroup{.name = "Dot",
+                                 .has_a_number = true,
+                                 .num_tiles_in_set = 36,
+                                 .priority = 5};
