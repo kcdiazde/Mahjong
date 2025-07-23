@@ -7,3 +7,4 @@ endmacro()
 
 add_mahjong_test(test_tiles)
 add_mahjong_test(test_player)
+add_mahjong_test(test_mahjong)
