@@ -95,7 +95,7 @@ class PlayerTest {
             player.DealTile(new_tile);
             tiles_dealt++;
 
-            const auto hand = *(player.GetHand());
+            const auto hand = player.GetHand();
             assert(hand.size() == tiles_dealt);
 
             TileId prev_tile_id = 0;

@@ -28,23 +28,24 @@ int main() {
     }
 
     GameEngine game_engine;
-    game_engine.DisplayGame();
 
     Mahjong my_mahjong = Mahjong();
-    my_mahjong.CreateMatch({"Yo", "Player 2", "Player 3", "Player 4"});
+    my_mahjong.CreateMatch({"P1", "P2", "P3", "P4"});
     my_mahjong.Pass3TilesToNextPlayer();
     // my_mahjong.PrintPlayersHands();
-    auto *players_ptr = my_mahjong.GetPlayers();
-    auto players_vector = *players_ptr;
-    auto *first_player = players_vector[0];
 
-    game_engine.DisplayPlayerTiles(*first_player);
-    game_engine.DisplayPlayerTiles(*first_player);
+    PlayersVector players = my_mahjong.GetPlayers();
+    game_engine.SetPlayers(players);
+
+    game_engine.DisplayGame();
 
     while (game_engine.GetWindow()->isOpen()) {
         game_engine.HandleEvents();
         game_engine.CheckSoundtrackFinished();
+
     }
+
+    Logger::Instance().SetLevel(LogLevel::kQuiet);
 
     return 0;
 }

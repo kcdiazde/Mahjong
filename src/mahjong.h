@@ -45,7 +45,7 @@ class Mahjong {
     void CheckPlayersIntegrity();
     bool Play();
     void UpdateCurrentPlayer();
-    PlayersVector *GetPlayers() { return &players_; }
+    PlayersVector GetPlayers() { return players_; }
 };
 
 #endif

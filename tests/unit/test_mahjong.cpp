@@ -49,7 +49,7 @@ class MahjongTest {
     
     // Helper to get the raw vector of players for easier access
     std::vector<Player*> GetPlayersVector(Mahjong& game) {
-        return *game.GetPlayers();
+        return game.GetPlayers();
     }
     
     // Creates a predictable, unshuffled set of tiles for testing game logic.
@@ -113,8 +113,8 @@ class MahjongTest {
         
         // Before passing, players have their original hands
         auto players = GetPlayersVector(game);
-        auto* player1_hand_before = players[0]->GetHand();
-        std::vector<MahjongTilePtr> p1_initial_hand = *player1_hand_before;
+        auto player1_hand_before = players[0]->GetHand();
+        std::vector<MahjongTilePtr> p1_initial_hand = player1_hand_before;
         
         game.Pass3TilesToNextPlayer();
         
@@ -123,8 +123,8 @@ class MahjongTest {
         assert(players[1]->GetNumTilesInHand() == kTilesPerPlayer);
     
         // A simple check: Player 1's hand should now be different.
-        auto* player1_hand_after = players[0]->GetHand();
-        assert(p1_initial_hand != *player1_hand_after);
+        auto player1_hand_after = players[0]->GetHand();
+        assert(p1_initial_hand != player1_hand_after);
     
         std::cout << "TestPassTiles: PASSED" << std::endl;
     }

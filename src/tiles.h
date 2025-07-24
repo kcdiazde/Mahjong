@@ -32,7 +32,7 @@ class MahjongTile {
     }
     // Virtual destructor to make class polymorphic
     virtual ~MahjongTile() {
-        Logger::Instance().Verbose(
+        Logger::Instance().Info(
             "GOOOOOOOOOOOOOODBYE "
             "WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORLD!!!!!!!!!!!!!!!");
         Logger::Instance().Verbose("Att: %s\n", GetFullName().c_str());
