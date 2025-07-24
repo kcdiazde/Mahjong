@@ -45,6 +45,7 @@ class Player {
     uint8_t GetNumFlowers() { return flowers_.size(); }
     std::string GetName() { return name_; }
     MahjongHand GetHand() { return hand_; }
+    MahjongHand GetSets() { return sets_; }
     void SortHand();
     bool FindTileWithIdAndGroup(TileId tile_id, std::string group);
     bool MoveTileBetweenHands(MahjongHand &src_hand, MahjongHand &dst_hand,

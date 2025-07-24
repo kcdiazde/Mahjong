@@ -185,6 +185,7 @@ class GameEngine {
 
     void DisplayGame() {
         assert(!players_.empty());
+        assert(mahjong_);
 
         window_.clear(sf::Color::Green);
 
@@ -196,49 +197,31 @@ class GameEngine {
     }
 
     void DisplayPlayer(Player &player) {
-        const auto hand = player.GetHand();
 
         int x_offset = resolution_width_ / 2;
         int y_offset = resolution_height_ * 9 / 10;
 
-        DisplaySetsMat(x_offset, y_offset);
+        const auto hand = player.GetHand();
         DisplayPlayersMat(x_offset, y_offset);
-        DisplayTiles(hand, y_offset, x_offset);
+        DisplayPlayersTiles(hand, x_offset, y_offset);
+
+        const auto sets = player.GetSets();
+        DisplaySetsMat(x_offset, y_offset);
+        DisplaySets(sets, x_offset, y_offset);
+
         DisplayTilesNumber(x_offset, y_offset, player.GetNumTilesInHand());
         // window_.draw(*text_);
     }
 
     void DisplayDiscards() {
-        DisplayDiscardedMat();
+
+        const float pos_x = resolution_width_ / 2.0;
+        const float pos_y = tile_real_width_ * 4.0;
+        DisplayDiscardMat(pos_x, pos_y);
+
+        const auto discards = mahjong_->GetDiscards();
+        DisplayDiscardTiles(discards, pos_x, pos_y);
     }
-
-
-    void DisplayTiles(const MahjongHand& hand, int center_y, int center_x) {
-
-        // TODO: auto hand_copy = hand;
-        std::vector<std::string> tile_paths;
-        for (const auto &tile_ptr : hand) {
-            auto tile_path = GetSpritePathFromTile(*tile_ptr);
-            tile_paths.push_back(tile_path);
-        }
-
-        float x_offset = center_x - (tile_real_width_ * 14);
-        float y_offset = center_y;
-
-        logger_->Info("x_offset = %f, y_offset = %f", x_offset, y_offset);
-        logger_->Info("tileScale = %f", tile_scale_);
-        logger_->Info("_tileRealWidth= %d", tile_real_width_);
-
-        for (const auto &tile_path : tile_paths) {
-            sf::Texture tile_texture(tile_path);
-            sf::Sprite tile_sprite(tile_texture);
-            tile_sprite.setScale({tile_scale_, tile_scale_});
-            tile_sprite.setPosition({x_offset, y_offset});
-            window_.draw(tile_sprite);
-            x_offset += tile_real_width_ * 2;
-        }
-    }
-
 
     void DisplayPlayersMat(const int tiles_x_offset, const int tiles_y_offset) {
         const float tile_w = tile_real_width_ * 29;
@@ -256,6 +239,55 @@ class GameEngine {
         window_.draw(rectangle);
     }
 
+
+    void DisplayPlayersTiles(const MahjongHand& hand, int center_x, int center_y) {
+
+        // TODO: auto hand_copy = hand;
+        std::vector<std::string> tile_paths;
+        for (const auto &tile_ptr : hand) {
+            auto tile_path = GetSpritePathFromTile(*tile_ptr);
+            tile_paths.push_back(tile_path);
+        }
+
+        float x_offset = center_x - (tile_real_width_ * 14);
+        float y_offset = center_y;
+
+        for (const auto &tile_path : tile_paths) {
+            sf::Texture tile_texture(tile_path);
+            sf::Sprite tile_sprite(tile_texture);
+            tile_sprite.setScale({tile_scale_, tile_scale_});
+            tile_sprite.setPosition({x_offset, y_offset});
+            window_.draw(tile_sprite);
+            x_offset += tile_real_width_ * 2;
+        }
+    }
+
+    void DisplaySets(const MahjongHand& sets, int center_x, int center_y) {
+        std::vector<std::string> tile_paths;
+        for (const auto &tile_ptr : sets) {
+            auto tile_path = GetSpritePathFromTile(*tile_ptr);
+            tile_paths.push_back(tile_path);
+        }
+
+        float x_offset = center_x - (tile_real_width_ * 14);
+        float y_offset = center_y - (tile_real_width_ * 4.0);
+
+        size_t tile_num = 0;
+        for (const auto &tile_path : tile_paths) {
+            sf::Texture tile_texture(tile_path);
+            sf::Sprite tile_sprite(tile_texture);
+            tile_sprite.setScale({tile_scale_, tile_scale_});
+            tile_sprite.setPosition({x_offset, y_offset});
+            window_.draw(tile_sprite);
+            tile_num++;
+            if ((tile_num % 3) == 0) {
+                x_offset += tile_real_width_ * 2;
+            } else {
+                x_offset += tile_real_width_ * 1.2;
+            }
+        }
+    }
+
     void DisplaySetsMat(const int tiles_x_offset, const int tiles_y_offset) {
         const float tile_w = tile_real_width_ * 29;
         const float tile_h = tile_real_width_ * 3;
@@ -263,7 +295,7 @@ class GameEngine {
         rectangle.setOrigin({tile_w / 2, 0});
 
         const float pos_x = resolution_width_ / 2;
-        const float pos_y = tiles_y_offset - (tile_real_width_ * 4.5);
+        const float pos_y = tiles_y_offset - (tile_real_width_ * 5);
         rectangle.setPosition({pos_x, pos_y});
 
         rectangle.setFillColor(sf::Color(1, 150, 1));
@@ -273,16 +305,17 @@ class GameEngine {
 
         auto text = new sf::Text(*font_);
         const auto firstPlayersName = GetFirstPlayersName();
-        text->setString(firstPlayersName + "'s Sets");
-        text->setCharacterSize(tile_real_width_ / 1.5);
+        const auto str = firstPlayersName + "'s Sets";
+        text->setString(str);
+        const auto charSize = tile_real_width_ / 1.5;
+        text->setCharacterSize(charSize);
         text->setFillColor(sf::Color::Black);
         text->setStyle(sf::Text::Bold);
-        text->setOrigin({tile_real_width_ * 1.5, 0});
+        text->setOrigin({str.size() * charSize / 4, 0});
 
         const float text_position_x = resolution_width_ / 2.0;
         const float text_position_y = pos_y ;
         text->setPosition({text_position_x, text_position_y});
-
         window_.draw(*text);
     }
 
@@ -304,21 +337,64 @@ class GameEngine {
         }
     }
 
-    void DisplayDiscardedMat() {
+    void DisplayDiscardMat(const float pos_x, const float pos_y) {
         const float tile_w = tile_real_width_ * 29.0;
         const float tile_h = tile_real_width_ * tile_ratio_ * 10;
         sf::RectangleShape rectangle({tile_w, tile_h});
         rectangle.setOrigin({tile_w / 2.0, 0});
 
-        const float pos_x = resolution_width_ / 2.0;
-        const float pos_y = resolution_height_ / 7;
         rectangle.setPosition({pos_x, pos_y});
 
         rectangle.setFillColor(sf::Color(1, 100, 1));
         rectangle.setOutlineThickness(tile_real_width_ / 10.0);
         rectangle.setOutlineColor(sf::Color::Black);
         window_.draw(rectangle);
+
+        auto text = new sf::Text(*font_);
+        std::string str = "Discarded tiles";
+        text->setString(str);
+        const auto charSize = tile_real_width_ / 1.5;
+        text->setCharacterSize(charSize);
+        text->setFillColor(sf::Color::Black);
+        text->setStyle(sf::Text::Bold);
+        text->setOrigin({str.size() * charSize / 4, 0});
+
+        const float text_position_x = resolution_width_ / 2.0;
+        const float text_position_y = pos_y ;
+        text->setPosition({text_position_x, text_position_y});
+        window_.draw(*text);
     }
+
+    void DisplayDiscardTiles(const MahjongHand& discards, int center_x, int center_y) {
+        std::vector<std::string> tile_paths;
+        for (const auto &tile_ptr : discards) {
+            auto tile_path = GetSpritePathFromTile(*tile_ptr);
+            tile_paths.push_back(tile_path);
+        }
+
+        float x_offset = center_x - (tile_real_width_ * 14);
+        float y_offset = center_y + (tile_real_width_ * 1.5);
+
+        const float tile_x_spacing = tile_real_width_ * 1.5;
+        const int num_tiles_in_space = (tile_real_width_ * 29) / tile_x_spacing;
+
+        size_t tile_num = 0;
+        for (const auto &tile_path : tile_paths) {
+            sf::Texture tile_texture(tile_path);
+            sf::Sprite tile_sprite(tile_texture);
+            tile_sprite.setScale({tile_scale_, tile_scale_});
+            tile_sprite.setPosition({x_offset, y_offset});
+            window_.draw(tile_sprite);
+            tile_num++;
+            if ((tile_num % num_tiles_in_space) == 0) {
+                y_offset += tile_real_width_ * 2.5; 
+                x_offset = center_x - (tile_real_width_ * 14);
+            } else {
+                x_offset += tile_x_spacing;
+            }
+        }
+    }
+
 
     // TODO: Needed?
     void DisplayTile(std::string tile_path, float y, float x) {
@@ -340,6 +416,10 @@ class GameEngine {
             logger_->Info("Ready player: %s", player->GetName().c_str());
         }
 
+    }
+
+    void SetGame(Mahjong* mahjong) {
+        mahjong_ = mahjong;
     }
 
     std::string GetFirstPlayersName() {
@@ -375,4 +455,5 @@ class GameEngine {
     int tile_real_width_ = 0;
 
     PlayersVector players_;
+    Mahjong * mahjong_ = nullptr;
 };

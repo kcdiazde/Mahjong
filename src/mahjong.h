@@ -46,6 +46,7 @@ class Mahjong {
     bool Play();
     void UpdateCurrentPlayer();
     PlayersVector GetPlayers() { return players_; }
+    std::vector<MahjongTilePtr> GetDiscards() { return discards_; }
 };
 
 #endif

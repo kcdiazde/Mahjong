@@ -1,5 +1,6 @@
 #include "game_engine.h"
 #include "mahjong.h"
+#include <thread>
 
 void SimulateRun() {
     printf("Welcome to mahjong\n\n");
@@ -15,6 +16,14 @@ void SimulateRun() {
     } while (!game_is_over);
 
     printf("Mahjong ended\n\n\n\n");
+}
+
+// TODO: Ensure threadsafety
+void HandleEvents(GameEngine*  game_engine) {
+    while (game_engine->GetWindow()->isOpen()) {
+        game_engine->HandleEvents();
+        game_engine->CheckSoundtrackFinished();
+    }
 }
 
 int main() {
@@ -36,14 +45,24 @@ int main() {
 
     PlayersVector players = my_mahjong.GetPlayers();
     game_engine.SetPlayers(players);
+    game_engine.SetGame(&my_mahjong);
 
     game_engine.DisplayGame();
 
-    while (game_engine.GetWindow()->isOpen()) {
-        game_engine.HandleEvents();
-        game_engine.CheckSoundtrackFinished();
+    std::thread events_thread(HandleEvents, &game_engine);
 
+    bool game_is_over = false;
+    while(!game_is_over) {
+        game_is_over = my_mahjong.Play();
+        game_engine.DisplayGame();
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+        if (!game_engine.GetWindow()->isOpen()) {
+            break;
+        }
     }
+
+    events_thread.join();
 
     Logger::Instance().SetLevel(LogLevel::kQuiet);
 
