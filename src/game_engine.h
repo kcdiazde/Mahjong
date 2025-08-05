@@ -3,6 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <cstring>
 
 #include "logger.h"
 #include "player.h"
@@ -193,6 +194,15 @@ class GameEngine {
         DisplayPlayer(*firstPlayer);
         DisplayDiscards();
 
+        auto bot1 = players_[1];
+        DisplayBot1(*bot1);
+
+        auto bot2 = players_[2];
+        DisplayBot2(*bot2);
+
+        auto bot3 = players_[3];
+        DisplayBot3(*bot3);
+
         window_.display();
     }
 
@@ -210,13 +220,45 @@ class GameEngine {
         DisplaySets(sets, x_offset, y_offset);
 
         DisplayTilesNumber(x_offset, y_offset, player.GetNumTilesInHand());
-        // window_.draw(*text_);
+    }
+
+    void DisplayBot1(Player &player) {
+
+        int x_offset = 0;
+        int y_offset = tile_real_width_ * tile_scale_;
+
+        DisplayBot1Mat(x_offset, y_offset);
+
+        const auto sets = player.GetSets();
+        DisplayBot1Sets(sets, x_offset, y_offset);
+    }
+
+    void DisplayBot2(Player &player) {
+
+        int x_offset = resolution_width_ / 2;
+        int y_offset = tile_real_width_ * tile_scale_;
+
+        DisplayBot2Mat(x_offset, y_offset);
+
+        const auto sets = player.GetSets();
+        DisplayBot2Sets(sets, x_offset, y_offset);
+    }
+
+    void DisplayBot3(Player &player) {
+
+        int x_offset = 0;
+        int y_offset = tile_real_width_ * tile_scale_;
+
+        DisplayBot3Mat(x_offset, y_offset);
+
+        const auto sets = player.GetSets();
+        DisplayBot3Sets(sets, x_offset, y_offset);
     }
 
     void DisplayDiscards() {
 
         const float pos_x = resolution_width_ / 2.0;
-        const float pos_y = tile_real_width_ * 4.0;
+        const float pos_y = tile_real_width_ * 5.0;
         DisplayDiscardMat(pos_x, pos_y);
 
         const auto discards = mahjong_->GetDiscards();
@@ -229,7 +271,7 @@ class GameEngine {
         sf::RectangleShape rectangle({tile_w, tile_h});
         rectangle.setOrigin({tile_w / 2, 0});
 
-        const float pos_x = resolution_width_ / 2;
+        const float pos_x = tiles_x_offset;
         const float pos_y = tiles_y_offset - tile_real_width_;
         rectangle.setPosition({pos_x, pos_y});
         // R G B, min is 1, max 100
@@ -238,6 +280,98 @@ class GameEngine {
         rectangle.setOutlineColor(sf::Color::Black);
         window_.draw(rectangle);
     }
+
+    void DisplayBot1Mat(const int tiles_x_offset, const int tiles_y_offset) {
+        const float tile_w = tile_real_width_ * 6;
+        const float tile_h = resolution_height_ - (4 * tiles_y_offset);
+        sf::RectangleShape rectangle({tile_w, tile_h});
+
+        const float pos_x = tile_real_width_;
+        const float pos_y = tiles_y_offset * 2;
+        rectangle.setPosition({pos_x, pos_y});
+        // R G B, min is 1, max 100
+        rectangle.setFillColor(sf::Color(1, 100, 1));
+        rectangle.setOutlineThickness(tile_real_width_/10);
+        rectangle.setOutlineColor(sf::Color::Black);
+        window_.draw(rectangle);
+
+        auto text = new sf::Text(*font_);
+        auto str = "Bot 1's Sets";
+        text->setString(str);
+        const auto charSize = tile_real_width_ / 1.5;
+        text->setCharacterSize(charSize);
+        text->setFillColor(sf::Color::Black);
+        text->setStyle(sf::Text::Bold);
+        text->setOrigin({std::strlen(str) * charSize / 6, 0});
+
+        const float text_position_x = tile_real_width_ * 3;
+        const float text_position_y = tiles_y_offset * 2;
+        text->setPosition({text_position_x, text_position_y});
+
+        window_.draw(*text);
+    }
+
+    void DisplayBot2Mat(const int tiles_x_offset, const int tiles_y_offset) {
+        const float tile_w = tile_real_width_ * 29;
+        const float tile_h = tile_real_width_ * 3;
+        sf::RectangleShape rectangle({tile_w, tile_h});
+        rectangle.setOrigin({tile_w / 2, 0});
+
+        const float pos_x = tiles_x_offset;
+        const float pos_y = tiles_y_offset * 0.5;
+        rectangle.setPosition({pos_x, pos_y});
+        // R G B, min is 1, max 100
+        rectangle.setFillColor(sf::Color(1, 100, 1));
+        rectangle.setOutlineThickness(tile_real_width_/10);
+        rectangle.setOutlineColor(sf::Color::Black);
+        window_.draw(rectangle);
+
+        auto text = new sf::Text(*font_);
+        auto str = "Bot 3's Sets";
+        text->setString(str);
+        const auto charSize = tile_real_width_ / 1.5;
+        text->setCharacterSize(charSize);
+        text->setFillColor(sf::Color::Black);
+        text->setStyle(sf::Text::Bold);
+        text->setOrigin({std::strlen(str) * charSize / 6, 0});
+
+        const float text_position_x = resolution_width_ / 2;
+        const float text_position_y = tile_real_width_ * tile_scale_ * 0.5;
+        text->setPosition({text_position_x, text_position_y});
+
+        window_.draw(*text);
+    }
+
+    void DisplayBot3Mat(const int tiles_x_offset, const int tiles_y_offset) {
+        const float tile_w = tile_real_width_ * 6;
+        const float tile_h = resolution_height_ - (4 * tiles_y_offset);
+        sf::RectangleShape rectangle({tile_w, tile_h});
+
+        const float pos_x = resolution_width_ - (tile_real_width_ * 7);
+        const float pos_y = tiles_y_offset * 2;
+        rectangle.setPosition({pos_x, pos_y});
+        // R G B, min is 1, max 100
+        rectangle.setFillColor(sf::Color(1, 100, 1));
+        rectangle.setOutlineThickness(tile_real_width_/10);
+        rectangle.setOutlineColor(sf::Color::Black);
+        window_.draw(rectangle);
+
+        auto text = new sf::Text(*font_);
+        auto str = "Bot 3's Sets";
+        text->setString(str);
+        const auto charSize = tile_real_width_ / 1.5;
+        text->setCharacterSize(charSize);
+        text->setFillColor(sf::Color::Black);
+        text->setStyle(sf::Text::Bold);
+        text->setOrigin({std::strlen(str) * charSize / 6, 0});
+
+        const float text_position_x = resolution_width_ - (tile_real_width_ * 5);
+        const float text_position_y = tiles_y_offset * 2;
+        text->setPosition({text_position_x, text_position_y});
+
+        window_.draw(*text);
+    }
+
 
 
     void DisplayPlayersTiles(const MahjongHand& hand, int center_x, int center_y) {
@@ -261,6 +395,81 @@ class GameEngine {
             x_offset += tile_real_width_ * 2;
         }
     }
+
+    void DisplayBot1Sets(const MahjongHand& hand, int center_x, int center_y) {
+
+        std::vector<std::string> tile_paths;
+        for (const auto &tile_ptr : hand) {
+            auto tile_path = GetSpritePathFromTile(*tile_ptr);
+            tile_paths.push_back(tile_path);
+        }
+
+        float x_offset = tile_real_width_ * 1.5;
+        float y_offset = center_y * 3;
+
+        size_t tile_num = 0;
+        for (const auto &tile_path : tile_paths) {
+            sf::Texture tile_texture(tile_path);
+            sf::Sprite tile_sprite(tile_texture);
+            tile_sprite.setScale({tile_scale_, tile_scale_});
+            tile_sprite.setPosition({x_offset, y_offset});
+            window_.draw(tile_sprite);
+            x_offset += tile_real_width_ * 2;
+            tile_num++;
+            if (tile_num % 3 == 0) {
+                y_offset += center_y * 1.5; 
+                x_offset = tile_real_width_ * 1.5;
+            }
+        }
+    }
+
+    void DisplayBot2Sets(const MahjongHand& hand, int center_x, int center_y) {
+        std::vector<std::string> tile_paths;
+        for (const auto &tile_ptr : hand) {
+            auto tile_path = GetSpritePathFromTile(*tile_ptr);
+            tile_paths.push_back(tile_path);
+        }
+
+        float x_offset = center_x - (tile_real_width_ * 14);
+        float y_offset = center_y;
+
+        for (const auto &tile_path : tile_paths) {
+            sf::Texture tile_texture(tile_path);
+            sf::Sprite tile_sprite(tile_texture);
+            tile_sprite.setScale({tile_scale_, tile_scale_});
+            tile_sprite.setPosition({x_offset, y_offset});
+            window_.draw(tile_sprite);
+            x_offset += tile_real_width_ * 2;
+        }
+    }
+
+    void DisplayBot3Sets(const MahjongHand& hand, int center_x, int center_y) {
+        std::vector<std::string> tile_paths;
+        for (const auto &tile_ptr : hand) {
+            auto tile_path = GetSpritePathFromTile(*tile_ptr);
+            tile_paths.push_back(tile_path);
+        }
+
+        float og_x_offset = resolution_width_ - (tile_real_width_ * 6.5);
+        float x_offset = og_x_offset;
+        float y_offset = center_y * 3;
+
+        size_t tile_num = 0;
+        for (const auto &tile_path : tile_paths) {
+            sf::Texture tile_texture(tile_path);
+            sf::Sprite tile_sprite(tile_texture);
+            tile_sprite.setScale({tile_scale_, tile_scale_});
+            tile_sprite.setPosition({x_offset, y_offset});
+            window_.draw(tile_sprite);
+            x_offset += tile_real_width_ * 2;
+            tile_num++;
+            if (tile_num % 3 == 0) {
+                y_offset += center_y * 1.5; 
+                x_offset = og_x_offset;
+            }
+        }
+    }
+
 
     void DisplaySets(const MahjongHand& sets, int center_x, int center_y) {
         std::vector<std::string> tile_paths;

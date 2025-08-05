@@ -39,7 +39,7 @@ int main() {
     GameEngine game_engine;
 
     Mahjong my_mahjong = Mahjong();
-    my_mahjong.CreateMatch({"P1", "P2", "P3", "P4"});
+    my_mahjong.CreateMatch({"P1", "Bot 1", "Bot 2", "Bot 3"});
     my_mahjong.Pass3TilesToNextPlayer();
     // my_mahjong.PrintPlayersHands();
 
@@ -61,6 +61,8 @@ int main() {
             break;
         }
     }
+
+    game_engine.DisplayGame();
 
     events_thread.join();
 
